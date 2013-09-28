@@ -1,0 +1,18 @@
+{
+  "name": "committing",
+  "description": "tracks commits made during hackathons",
+  "dependencies": {
+    "request": "*",
+    "cheerio": "*"
+  },
+  "scripts": {
+    "start": "./userScrape.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JasonTam/committing"
+  },
+  "engines": {
+    "node": ">=0.10"
+  }
+}

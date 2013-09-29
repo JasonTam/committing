@@ -7,7 +7,7 @@ var hlBaseUrl = 'http://www.hackerleague.org';
 var partsUrl = hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon/participations';
 var ghBaseUrl = 'http://www.github.com/'; // needs the slash
 
-var start = new Date('2013-09-28T06:00Z');
+var start = new Date('2013-09-28T18:00Z');
 
 var getGithubUser = function(url) {
 	var slash = url.lastIndexOf('/');

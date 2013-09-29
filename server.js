@@ -122,6 +122,67 @@ app.get('/commits/rickshaw', function(req, res) {
 	});
 });
 
+app.get('/commits/users/rickshaw', function(req, res) {
+	/* Connect to the DB and auth */
+	MongoClient.connect(mongourl, function(err, db) {
+		if(err) { return console.dir(err); }
+		
+		var collection = db.collection('commits');
+
+		var users = {}; // set of users
+		var commits = []; // list of users and their commits
+
+		collection.find().sort({time: 1}).each(function(err, commit) {
+
+			// close database
+			if (commit == null) {
+				db.close();
+				res.send(commits);
+
+				return;
+			}
+
+			// net lines
+			var net = commit.additions - commit.deletions;
+
+			// add this commit to the repo
+			if (net < 1000) {
+				// this is a new repo!
+				if (users[commit.name] === undefined) {
+					users[commit.name] = commits.length;
+
+					commits.push({
+						name: commit.name,
+						data: []
+					})
+				}
+
+				if (commits[users[commit.name]].data.length > 0) {
+					var prev_net = commits[users[commit.name]].data[commits[users[commit.name]].data.length - 1].y;
+
+					commits[users[commit.name]].data.push({
+						x: commit.time.getTime() / 1000,
+						y: prev_net + net,
+						additions: commit.additions,
+						deletions: commit.deletions,
+						committer: commit.name,
+						message: commit.message
+					});
+				} else {
+					commits[users[commit.name]].data.push({
+						x: commit.time.getTime() / 1000,
+						y: net,
+						additions: commit.additions,
+						deletions: commit.deletions,
+						committer: commit.name,
+						message: commit.message
+					});
+				}
+			}
+		});
+	});
+});
+
 var insertCommit = function(data) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {

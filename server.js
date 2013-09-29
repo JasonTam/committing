@@ -1,7 +1,7 @@
 var express = require('express');
 var MongoClient = require('mongodb').MongoClient;
 var request = require('request');
-var scrape = require('userScrape.js');
+var scrape = require('./userScrape.js');
 var app = express();
 
 app.use(express.static(__dirname + '/public'));

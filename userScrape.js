@@ -123,6 +123,9 @@ request(partsUrl, function(err, resp, body) {
 
 		var userPageUrl = hlBaseUrl + $(userLink).attr('href');
 
+		if (userPageUrl != 'http://www.hackerleague.org/users/jtam')
+			return;
+
 		if (userList.indexOf(userPageUrl) < 0) {
 			userList.push(userPageUrl);
 			console.log(userPageUrl);

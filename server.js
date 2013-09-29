@@ -1,5 +1,6 @@
 var express = require('express');
 var MongoClient = require('mongodb').MongoClient;
+var request = require('request');
 var app = express();
 
 app.use(express.static(__dirname + '/public'));
@@ -207,17 +208,18 @@ var update = function() {
 		var collection = db.collection('commits');
 		collection.distinct('repo', function(err, repos) {
 
-			collection.find({'repo': repos}).each(function(err, repo) {
-				if (repo == null) {
-					db.close();
+			for (var r in repos) {
+				var repo = repos[r];
 
-					return;
-				}
+				collection.findOne({'repo': repo}, function(err, rep) {
+					getActivity(rep.owner, rep.repo);
+				});
+			}
 
-				getActivity(repo.owner, repo.repo);
-			});
+			// probably should close.
+			// db.close();
 		});
 	});
 }
 
-update();
+setInterval(update, 1000 * 60 * 30);

@@ -127,8 +127,10 @@ var getActivity = function(owner, repo) {
 };
 
 var getRepos = function(user) {
+	var uri = 'https://api.github.com/users/' + user + '/repos?sort=created';
+
 	request.get({
-		uri: 'https://api.github.com/users/' + user + '/repos?sort=created', 
+		uri: uri, 
 		json: true,
 		qs: {access_token: access_token}
 	}, function(err, resp, body) {
@@ -158,7 +160,7 @@ var getRepos = function(user) {
 		} else if (err) {
 			console.error(err.message);
 		} else {
-			console.error('Error getting repos: ' + resp.statusCode);
+			console.error('Error getting repos from ' + uri + ' : ' + resp.statusCode);
 		}
 	});
 };

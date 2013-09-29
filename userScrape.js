@@ -138,12 +138,14 @@ var getRepos = function(user) {
 			for (var r in body) {
 				var repo = body[r];
 
-				var created_at = new Date(repo.created_at);
+				// var created_at = new Date(repo.created_at);
 
-				if (created_at > start) {
-					repo_hack = repo;
-					break;
-				}
+				// if (created_at > start) {
+				// 	repo_hack = repo;
+				// 	break;
+				// }
+
+				repo_hack = repo;
 
 				break;
 			}

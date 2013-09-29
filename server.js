@@ -72,7 +72,7 @@ app.get('/commits/rickshaw', function(req, res) {
 			var net = commit.additions - commit.deletions;
 
 			// add this commit to the repo
-			if (net < 100) {
+			if (net < 1000) {
 				// this is a new repo!
 				if (repos[commit.repo] === undefined) {
 					repos[commit.repo] = commits.length;
@@ -83,10 +83,19 @@ app.get('/commits/rickshaw', function(req, res) {
 					})
 				}
 
-				commits[repos[commit.repo]].data.push({
-					x: commit.time.getTime() / 1000,
-					y: net
-				})
+				if (commits[repos[commit.repo]].data.length > 0) {
+					var prev_net = commits[repos[commit.repo]].data[commits[repos[commit.repo]].data.length - 1].y;
+
+					commits[repos[commit.repo]].data.push({
+						x: commit.time.getTime() / 1000,
+						y: prev_net + net
+					});
+				} else {
+					commits[repos[commit.repo]].data.push({
+						x: commit.time.getTime() / 1000,
+						y: net
+					});
+				}
 			}
 		});
 	});

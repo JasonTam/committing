@@ -155,6 +155,17 @@ var getRepos = function(user) {
 	});
 };
 
+var crawlRepos = function(gitUrl){
+	request(gitUrl,function(err,resp,body){
+		var $ = cheerio.load(body);
+		var repoCLink = $('.simple-conversation-list>li .title');
+		var repoLink=$(repoCLink).attr('href')
+		console.log(repoLink);
+	})
+};
+
+
+
 var scrapeUser = function(githubList, userPageUrl) {
 
 	request(userPageUrl, function(err, resp, body){
@@ -173,8 +184,8 @@ var scrapeUser = function(githubList, userPageUrl) {
 
 				if (gitUrl != ghBaseUrl && githubList.indexOf(ghUser) < 0) {
 					githubList.push(ghUser);
-
-					getRepos(ghUser);
+					crawlRepos(gitUrl)
+					//getRepos(ghUser);
 				}
 			});
 		} else if (err) {

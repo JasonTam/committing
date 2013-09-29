@@ -22,7 +22,7 @@ var generate_mongo_url = function(obj) {
 
 	// If on NodeJitsu Server
 	if (process.env.NODE_ENV=='production') {
-		console.log("inside");
+		// console.log("inside");
 		return 'mongodb://nodejitsu:dffd4e320b733a127ea2e371f7c4f926@paulo.mongohq.com:10060/nodejitsudb2293466096';
 	}
 	
@@ -232,5 +232,5 @@ var update = function() {
 	});
 }
 
-// scrape();
-// setInterval(update, 1000 * 60 * 5);
+scrape();
+setInterval(update, 1000 * 60 * 5);

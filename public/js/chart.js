@@ -58,8 +58,8 @@ graph = new Rickshaw.Graph.Ajax( {
 		
 			
 
-		$('.label').on('click', function() {
-			window.location = 'http://github.com/' + $(this).text();
+		$('.label').each(function(i, label) {
+			$(this).html($('<a>').attr('href', 'http://github.com/' + $(this).text()).text($(this).text()));
 		});
 	}
 });

@@ -1,10 +1,13 @@
 var express = require('express');
 var MongoClient = require('mongodb').MongoClient;
+var request = require('request');
 var app = express();
 
 app.use(express.static(__dirname + '/public'));
 
 app.listen(process.env.PORT || 8080);
+
+var access_token = "9b73db13aedb532621c2318d0bc5c5d6955a4805";
 
 var mongo;
 var mongourl;
@@ -106,3 +109,117 @@ app.get('/commits/rickshaw', function(req, res) {
 		});
 	});
 });
+
+var insertCommit = function(data) {
+	/* Connect to the DB and auth */
+	MongoClient.connect(mongourl, function(err, db) {
+		if(err) { return console.warn(err); }
+		
+		db.collection("commits", function(err, collection) {
+			
+			collection.ensureIndex('time', function() {
+				// console.log(data);
+
+				/* Note the _id has been created */
+				collection.insert(data, {
+					safe : true
+				}, function(err, result) {
+					if (err) console.warn(err.message);
+				});
+				
+				db.close();
+			});
+		});
+	});
+}
+
+var getCommitDetail = function(owner, repo, sha) {
+	request.get({
+		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits/' + sha,
+		json: true,
+		qs: {access_token: access_token}
+	}, function(err, resp, body) {
+		if (!err && resp.statusCode == 200) {
+			var time = new Date(body.commit.committer.date);
+			var net_lines = body.stats.additions - body.stats.deletions;
+
+			console.log(repo + ',' + body.commit.committer.name + ',' + net_lines + ',' + time.toISOString());
+
+			insertCommit({
+				time: time,
+				repo: repo,
+				owner: owner,
+				name: body.commit.committer.name,
+				username: body.author.login,
+				additions: body.stats.additions,
+				deletions: body.stats.deletions,
+				sha: sha
+			});
+
+		} else if (err) {
+			console.error(err.message);
+		} else {
+			console.error('Error getting commit from ' + owner + '/' + repo + ': ' + resp.statusCode);
+		}
+	});
+}
+
+var checkCommit = function(commit) {
+	/* Connect to the DB and auth */
+	MongoClient.connect(mongourl, function(err, db) {
+		if(err) { return console.dir(err); }
+		
+		var collection = db.collection('commits');
+		if (!collection.find({
+			sha: commit.sha
+		}).limit(1)) {
+			getCommitDetail(owner, repo, commit.sha);
+		};
+
+		db.close();
+	});
+}
+
+var getActivity = function(owner, repo) {
+	request.get({
+		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits?per_page=100',
+		json: true,
+		qs: {access_token: access_token}
+	}, function(err, resp, body) {
+		if (!err && resp.statusCode == 200) {
+			for (var c in body) {
+				var commit = body[c];
+
+				checkCommit(commit);
+			}
+		} else if (err) {
+			console.error(err.message);
+		} else {
+			console.error('Error getting activity from ' + owner + '/' + repo + ': ' + resp.statusCode);
+		}
+	});
+}
+
+var update = function() {
+	/* Connect to the DB and auth */
+	MongoClient.connect(mongourl, function(err, db) {
+		if(err) { return console.dir(err); }
+		
+		var collection = db.collection('commits');
+		collection.distinct('repo', function(err, repos) {
+
+			for (var r in repos) {
+				var repo = repos[r];
+
+				collection.findOne({'repo': repo}, function(err, rep) {
+					getActivity(rep.owner, rep.repo);
+				});
+			}
+
+			// probably should close.
+			// db.close();
+		});
+	});
+}
+
+setInterval(update, 1000 * 60 * 30);

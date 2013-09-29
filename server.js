@@ -157,6 +157,7 @@ var getCommitDetail = function(owner, repo, sha) {
 				username: body.author.login,
 				additions: body.stats.additions,
 				deletions: body.stats.deletions,
+				message: body.commit.message,
 				sha: sha
 			});
 

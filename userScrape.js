@@ -211,31 +211,35 @@ var scrapeUser = function(githubList, userPageUrl) {
 
 };
 
-request(partsUrl, function(err, resp, body) {
-	var $ = cheerio.load(body);
-	var userList = [];
-	var githubList = [];
+var scrape = function() {
+	request(partsUrl, function(err, resp, body) {
+		var $ = cheerio.load(body);
+		var userList = [];
+		var githubList = [];
 
-	// User Page Links
-	var userLinks = $('div#participants .user > .details > a.username');
+		// User Page Links
+		var userLinks = $('div#participants .user > .details > a.username');
 
-	$(userLinks).each(function(i, userLink) {
-		if (USER_LIMIT >= 0 && i >= USER_LIMIT) {
-			return;
-		}
+		$(userLinks).each(function(i, userLink) {
+			if (USER_LIMIT >= 0 && i >= USER_LIMIT) {
+				return;
+			}
 
-		var userPageUrl = hlBaseUrl + $(userLink).attr('href');
+			var userPageUrl = hlBaseUrl + $(userLink).attr('href');
 
-		// if (userPageUrl != 'http://www.hackerleague.org/users/jtam' &&
-		// 	userPageUrl != 'http://www.hackerleague.org/users/csherland')
-		// 	return;
+			// if (userPageUrl != 'http://www.hackerleague.org/users/jtam' &&
+			// 	userPageUrl != 'http://www.hackerleague.org/users/csherland')
+			// 	return;
 
-		if (userList.indexOf(userPageUrl) < 0) {
-			userList.push(userPageUrl);
-			// console.log(userPageUrl);
-			scrapeUser(githubList, userPageUrl)
-		}
+			if (userList.indexOf(userPageUrl) < 0) {
+				userList.push(userPageUrl);
+				// console.log(userPageUrl);
+				scrapeUser(githubList, userPageUrl)
+			}
+		});
+
 	});
+};
 
-});
+module.exports = scrape;
 

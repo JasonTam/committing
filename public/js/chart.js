@@ -43,16 +43,10 @@ graph = new Rickshaw.Graph.Ajax( {
 		});
 		
 
-		var offsetForm = document.getElementById('offset_form');
-		offsetForm.addEventListener('change', function(e) {
-				var offsetMode = e.target.value;
-				console.log(offsetMode);
-				if (offsetMode == 'line') {
-						transport.graph.setRenderer('line');
-				} else {
-						transport.graph.setRenderer('scatterplot');
-						// transport.graph.renderer.unstack = true;
-				}       
+		var renderForm = document.getElementById('render_form');
+		renderForm.addEventListener('change', function(e) {
+				var renderMode = e.target.value;
+				transport.graph.setRenderer(renderMode);
 				transport.graph.render();
 		}, false);
 		

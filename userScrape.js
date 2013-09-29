@@ -98,6 +98,7 @@ var getCommitDetail = function(owner, repo, sha) {
 				repo: repo,
 				owner: owner,
 				name: body.commit.committer.name,
+				committer: body.committer.login,
 				username: body.author.login,
 				additions: body.stats.additions,
 				deletions: body.stats.deletions,

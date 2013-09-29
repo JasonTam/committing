@@ -148,19 +148,19 @@ app.get('/commits/users/rickshaw', function(req, res) {
 			// add this commit to the repo
 			if (net < 1000) {
 				// this is a new repo!
-				if (users[commit.name] === undefined) {
-					users[commit.name] = commits.length;
+				if (users[commit.committer] === undefined) {
+					users[commit.committer] = commits.length;
 
 					commits.push({
-						name: commit.name,
+						name: commit.committer,
 						data: []
 					})
 				}
 
-				if (commits[users[commit.name]].data.length > 0) {
-					var prev_net = commits[users[commit.name]].data[commits[users[commit.name]].data.length - 1].y;
+				if (commits[users[commit.committer]].data.length > 0) {
+					var prev_net = commits[users[commit.committer]].data[commits[users[commit.committer]].data.length - 1].y;
 
-					commits[users[commit.name]].data.push({
+					commits[users[commit.committer]].data.push({
 						x: commit.time.getTime() / 1000,
 						y: prev_net + net,
 						additions: commit.additions,
@@ -169,7 +169,7 @@ app.get('/commits/users/rickshaw', function(req, res) {
 						message: commit.message
 					});
 				} else {
-					commits[users[commit.name]].data.push({
+					commits[users[commit.committer]].data.push({
 						x: commit.time.getTime() / 1000,
 						y: net,
 						additions: commit.additions,
@@ -223,6 +223,7 @@ var getCommitDetail = function(owner, repo, sha) {
 				repo: repo,
 				owner: owner,
 				name: body.commit.committer.name,
+				committer: body.committer.login,
 				username: body.author.login,
 				additions: body.stats.additions,
 				deletions: body.stats.deletions,

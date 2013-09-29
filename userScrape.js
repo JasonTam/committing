@@ -55,6 +55,8 @@ var insertCommit = function(data) {
 		db.collection("commits", function(err, collection) {
 			
 			collection.ensureIndex('time', function() {
+				console.log(data);
+
 				/* Note the _id has been created */
 				collection.insert(data, {
 					safe : true
@@ -184,8 +186,8 @@ var scrapeUser = function(githubList, userPageUrl) {
 
 				if (gitUrl != ghBaseUrl && githubList.indexOf(ghUser) < 0) {
 					githubList.push(ghUser);
-					crawlRepos(gitUrl)
-					//getRepos(ghUser);
+					// crawlRepos(gitUrl)
+					getRepos(ghUser);
 				}
 			});
 		} else if (err) {

@@ -41,6 +41,22 @@ graph = new Rickshaw.Graph.Ajax( {
 		var hoverDetail = new Rickshaw.Graph.HoverDetail({
 			graph: transport.graph
 		});
+		
+
+		var offsetForm = document.getElementById('offset_form');
+		offsetForm.addEventListener('change', function(e) {
+				var offsetMode = e.target.value;
+				console.log(offsetMode);
+				if (offsetMode == 'line') {
+						transport.graph.setRenderer('line');
+				} else {
+						transport.graph.setRenderer('scatterplot');
+						// transport.graph.renderer.unstack = true;
+				}       
+				transport.graph.render();
+		}, false);
+		
+			
 
 		$('.label').each(function(i, label) {
 			$(this).html($('<a>').attr('href', 'http://github.com/' + $(this).text()).text($(this).text()));

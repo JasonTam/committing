@@ -7,6 +7,22 @@ var ghBaseUrl = 'http://www.github.com/'; // needs the slash
 
 // emitter.setMaxListeners(0);
 
+var getGithubUser = function(url) {
+	var slash = url.lastIndexOf('/');
+
+	if (slash < url.length - 1) {
+		return url.substring(slash + 1);
+	}
+
+	return "";
+};
+
+var getRepos = function(user) {
+	request('https://api.github.com/users/' + user + 'repos?sort=created', function(err, resp, body) {
+		console.log(resp);
+	});
+}
+
 var scrapeUser = function(githubList, userPageUrl) {
 
 	request(userPageUrl, function(err, resp, body){
@@ -17,18 +33,19 @@ var scrapeUser = function(githubList, userPageUrl) {
 
 		$(gitLinks).each(function(i, gitLink){
 			var gitUrl = $(gitLink).attr('href');
+			var ghUser = getGithubUser(gitUrl);
 
 			if (gitUrl != ghBaseUrl) {
-				if (githubList.indexOf(gitUrl) < 0) {
-					githubList.push(gitUrl);
+				if (githubList.indexOf(ghUser) < 0) {
+					githubList.push(ghUser);
 
-					console.log(gitUrl);
+					getRepos(ghUser);
 				}
 			}
 		});
 	});
 
-}
+};
 
 request(partsUrl, function(err, resp, body){
 	var $ = cheerio.load(body);

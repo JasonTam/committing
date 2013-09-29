@@ -19,6 +19,25 @@ var getGithubUser = function(url) {
 	return "";
 };
 
+var getCommitDetail = function(owner, repo, sha) {
+	request.get({
+		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits/' + sha,
+		json: true
+	}, function(err, resp, body) {
+		if (!err && resp.statusCode == 200) {
+			var time = new Date(body.commit.committer.date);
+			var net_lines = body.stats.additions - body.stats.deletions;
+			var net_files = body.files.additions - body.files.deletions;
+
+			console.log(repo + ',' + body.commit.committer.name + ',' + net_lines + ',' + net_files + ',' + time.toISOString());
+		} else if (err) {
+			console.error(err.message);
+		} else {
+			console.error('Error getting commit from ' + owner + '/' + repo + ': ' + resp.statusCode);
+		}
+	});
+}
+
 var getActivity = function(owner, repo) {
 	request.get({
 		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits',
@@ -31,7 +50,7 @@ var getActivity = function(owner, repo) {
 				var time = new Date(commit.commit.committer.date);
 
 				if (time > start) {
-					console.log(repo + ',' + commit.commit.committer.name + ',' + time.getTime());
+					getCommitDetail(owner, repo, commit.sha);
 				}
 			}
 		} else if (err) {

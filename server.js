@@ -252,4 +252,4 @@ if (process.env.NODE_ENV == 'production') {
 		});
 	});
 }
-setInterval(update, 1000 * 60 * 5);
+setInterval(update, 1000 * 60 * 5);	

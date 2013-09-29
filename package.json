@@ -3,7 +3,8 @@
   "description": "tracks commits made during hackathons",
   "dependencies": {
     "request": "*",
-    "cheerio": "*"
+    "cheerio": "*",
+    "express": "*"
   },
   "scripts": {
     "start": "./server.js"

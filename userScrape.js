@@ -17,6 +17,8 @@ var scrapeUser = function(userPageUrl) {
 
 		$(gitLinks).each(function(i, gitLink){
 		var gitUrl = $(gitLink).attr('href');
+		girUrlPhrases = gitUrl.split("/");
+		gitUrl = ghBaseUrl + girUrlPhrases[girUrlPhrases.length-1]
 		if (gitUrl!=ghBaseUrl)
 			console.log(gitUrl);
 		});

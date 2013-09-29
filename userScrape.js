@@ -21,7 +21,6 @@ var scrapeUser = function(githubList, userPageUrl) {
 		gitUrl = ghBaseUrl + girUrlPhrases[girUrlPhrases.length-1]
 		if (gitUrl!=ghBaseUrl)
 			console.log(gitUrl);
-=======
 			var gitUrl = $(gitLink).attr('href');
 
 			if (gitUrl != ghBaseUrl) {

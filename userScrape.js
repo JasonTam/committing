@@ -89,6 +89,7 @@ var getCommitDetail = function(owner, repo, sha) {
 				time: time,
 				repo: repo,
 				name: body.commit.committer.name,
+				username: body.author.login,
 				additions: body.stats.additions,
 				deletions: body.stats.deletions
 			});

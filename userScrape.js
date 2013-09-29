@@ -21,6 +21,14 @@ var generate_mongo_url = function(obj) {
 	obj.hostname = (obj.hostname || 'localhost');
 	obj.port = (obj.port || 27017);
 	obj.db = (obj.db || 'powerdata');
+	
+
+	// If on NodeJitsu Server
+	if (process.env.NODE_ENV=='production') {
+		console.log("inside");
+		return 'mongodb://nodejitsu:dffd4e320b733a127ea2e371f7c4f926@paulo.mongohq.com:10060/nodejitsudb2293466096';
+	}
+	
 	if (obj.username && obj.password) {
 		return 'mongodb://' + obj.username + ':' + obj.password + '@'
 				+ obj.hostname + ':' + obj.port + '/' + obj.db;
@@ -211,31 +219,35 @@ var scrapeUser = function(githubList, userPageUrl) {
 
 };
 
-request(partsUrl, function(err, resp, body) {
-	var $ = cheerio.load(body);
-	var userList = [];
-	var githubList = [];
+var scrape = function() {
+	request(partsUrl, function(err, resp, body) {
+		var $ = cheerio.load(body);
+		var userList = [];
+		var githubList = [];
 
-	// User Page Links
-	var userLinks = $('div#participants .user > .details > a.username');
+		// User Page Links
+		var userLinks = $('div#participants .user > .details > a.username');
 
-	$(userLinks).each(function(i, userLink) {
-		if (USER_LIMIT >= 0 && i >= USER_LIMIT) {
-			return;
-		}
+		$(userLinks).each(function(i, userLink) {
+			if (USER_LIMIT >= 0 && i >= USER_LIMIT) {
+				return;
+			}
 
-		var userPageUrl = hlBaseUrl + $(userLink).attr('href');
+			var userPageUrl = hlBaseUrl + $(userLink).attr('href');
 
-		// if (userPageUrl != 'http://www.hackerleague.org/users/jtam' &&
-		// 	userPageUrl != 'http://www.hackerleague.org/users/csherland')
-		// 	return;
+			// if (userPageUrl != 'http://www.hackerleague.org/users/jtam' &&
+			// 	userPageUrl != 'http://www.hackerleague.org/users/csherland')
+			// 	return;
 
-		if (userList.indexOf(userPageUrl) < 0) {
-			userList.push(userPageUrl);
-			// console.log(userPageUrl);
-			scrapeUser(githubList, userPageUrl)
-		}
+			if (userList.indexOf(userPageUrl) < 0) {
+				userList.push(userPageUrl);
+				// console.log(userPageUrl);
+				scrapeUser(githubList, userPageUrl)
+			}
+		});
+
 	});
+};
 
-});
+module.exports = scrape;
 

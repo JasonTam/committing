@@ -2,12 +2,40 @@ USER_LIMIT = -1;
 
 var request = require('request');
 var cheerio = require('cheerio');
+var MongoClient = require('mongodb').MongoClient;
 
 var hlBaseUrl = 'http://www.hackerleague.org';
 var partsUrl = hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon/participations';
 var ghBaseUrl = 'http://www.github.com/'; // needs the slash
 
 var start = new Date('2013-09-28T18:00Z');
+
+/* MONGODB */
+var mongo;
+var mongourl;
+
+var generate_mongo_url = function(obj) {
+	obj.hostname = (obj.hostname || 'localhost');
+	obj.port = (obj.port || 27017);
+	obj.db = (obj.db || 'powerdata');
+	if (obj.username && obj.password) {
+		return 'mongodb://' + obj.username + ':' + obj.password + '@'
+				+ obj.hostname + ':' + obj.port + '/' + obj.db;
+	} else {
+		return 'mongodb://' + obj.hostname + ':' + obj.port + '/' + obj.db;
+	}
+};
+
+var mongo = {
+	'hostname' : 'localhost',
+	'port' : 27017,
+	'username' : '',
+	'password' : '',
+	'name' : '',
+	'db' : 'committing'
+};
+
+var mongourl = generate_mongo_url(mongo);
 
 var getGithubUser = function(url) {
 	var slash = url.lastIndexOf('/');
@@ -19,17 +47,47 @@ var getGithubUser = function(url) {
 	return "";
 };
 
+var insertCommit = function(data) {
+	/* Connect to the DB and auth */
+	MongoClient.connect(mongourl, function(err, db) {
+		if(err) { return console.warn(err); }
+		
+		db.collection("commits", function(err, collection) {
+			
+			collection.ensureIndex('time', function() {
+				/* Note the _id has been created */
+				collection.insert(data, {
+					safe : true
+				}, function(err, result) {
+					if (err) console.warn(err.message);
+				});
+				
+				db.close();
+			});
+		});
+	});
+}
+
 var getCommitDetail = function(owner, repo, sha) {
 	request.get({
 		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits/' + sha,
-		json: true
+		json: true,
+		qs: {access_token: "9b73db13aedb532621c2318d0bc5c5d6955a4805"}
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {
 			var time = new Date(body.commit.committer.date);
 			var net_lines = body.stats.additions - body.stats.deletions;
-			var net_files = body.files.additions - body.files.deletions;
 
-			console.log(repo + ',' + body.commit.committer.name + ',' + net_lines + ',' + net_files + ',' + time.toISOString());
+			// console.log(repo + ',' + body.commit.committer.name + ',' + net_lines + ',' + time.toISOString());
+
+			insertCommit({
+				time: time,
+				repo: repo,
+				name: body.commit.committer.name,
+				additions: body.stats.additions,
+				deletions: body.stats.deletions
+			});
+
 		} else if (err) {
 			console.error(err.message);
 		} else {
@@ -41,7 +99,8 @@ var getCommitDetail = function(owner, repo, sha) {
 var getActivity = function(owner, repo) {
 	request.get({
 		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits',
-		json: true
+		json: true,
+		qs: {access_token: "9b73db13aedb532621c2318d0bc5c5d6955a4805"}
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {
 			for (var c in body) {
@@ -62,10 +121,10 @@ var getActivity = function(owner, repo) {
 };
 
 var getRepos = function(user) {
-	request.get(
-		{
-			uri: 'https://api.github.com/users/' + user + '/repos?sort=created', 
-			json: true
+	request.get({
+		uri: 'https://api.github.com/users/' + user + '/repos?sort=created', 
+		json: true,
+		qs: {access_token: "9b73db13aedb532621c2318d0bc5c5d6955a4805"}
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {
 			var repo_hack;

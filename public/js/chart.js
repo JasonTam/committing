@@ -75,7 +75,7 @@ graph = new Rickshaw.Graph.Ajax( {
 				var series = point.series;
 				var actualY = series.scale ? series.scale.invert(point.value.y) : point.value.y;
 
-				item.innerHTML = this.formatter(series, point.value.x, actualY, formattedXValue, formattedYValue, point) + '</br>' + point.value.committer + ': ' + point.value.message;
+				item.innerHTML = this.formatter(series, point.value.x, actualY, formattedXValue, formattedYValue, point) + '</br>' + point.value.committer + ' (+' + point.value.additions + '/-' + point.value.deletions + ')' + '</br>' + point.value.message;
 				item.style.top = this.graph.y(point.value.y0 + point.value.y) + 'px';
 
 				this.element.appendChild(item);

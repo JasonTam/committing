@@ -102,6 +102,8 @@ app.get('/commits/rickshaw', function(req, res) {
 					commits[repos[commit.repo]].data.push({
 						x: commit.time.getTime() / 1000,
 						y: prev_net + net,
+						additions: commit.additions,
+						deletions: commit.deletions,
 						committer: commit.name,
 						message: commit.message
 					});
@@ -109,6 +111,8 @@ app.get('/commits/rickshaw', function(req, res) {
 					commits[repos[commit.repo]].data.push({
 						x: commit.time.getTime() / 1000,
 						y: net,
+						additions: commit.additions,
+						deletions: commit.deletions,
 						committer: commit.name,
 						message: commit.message
 					});

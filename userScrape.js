@@ -35,7 +35,7 @@ request(partsUrl, function(err, resp, body){
 	var userPageUrl = hlBaseUrl + $(userLink).attr('href');
 	console.log(userPageUrl);
 	scrapeUser(userPageUrl)
-		var userPageUrl = baseUrl + $(userLink).attr('href');
+		var userPageUrl = hlBaseUrl + $(userLink).attr('href');
 
 		if (userList.indexOf(userPageUrl) < 0) {
 			userList.push(userPageUrl);

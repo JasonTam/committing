@@ -11,25 +11,18 @@ var scrapeUser = function(githubList, userPageUrl) {
 
 	request(userPageUrl, function(err, resp, body){
 		var $ = cheerio.load(body);
-
 		// Git Profile Links
 		var gitLinks = $('.contact_row > a.github.icon');
-
 		$(gitLinks).each(function(i, gitLink){
 		var gitUrl = $(gitLink).attr('href');
 		girUrlPhrases = gitUrl.split("/");
 		gitUrl = ghBaseUrl + girUrlPhrases[girUrlPhrases.length-1]
-		if (gitUrl!=ghBaseUrl)
-			console.log(gitUrl);
-			var gitUrl = $(gitLink).attr('href');
-
-			if (gitUrl != ghBaseUrl) {
-				if (githubList.indexOf(gitUrl) < 0) {
-					githubList.push(gitUrl);
-
-					console.log(gitUrl);
-				}
+		if (gitUrl!=ghBaseUrl) {
+			if (githubList.indexOf(gitUrl) < 0) {
+				githubList.push(gitUrl);
+				console.log(gitUrl);
 			}
+		}
 		});
 	});
 
@@ -50,7 +43,6 @@ request(partsUrl, function(err, resp, body){
 		if (userList.indexOf(userPageUrl) < 0) {
 			userList.push(userPageUrl);
 			console.log(userPageUrl);
-
 			scrapeUser(githubList, userPageUrl)
 		}
 	});

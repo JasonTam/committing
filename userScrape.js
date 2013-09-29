@@ -31,7 +31,7 @@ var getActivity = function(owner, repo) {
 				var time = new Date(commit.commit.committer.date);
 
 				if (time > start) {
-					console.log(time + ' : ' + commit.commit.committer.name);
+					console.log(repo + ',' + commit.commit.committer.name + ',' + time.getTime());
 				}
 			}
 		} else if (err) {
@@ -123,12 +123,13 @@ request(partsUrl, function(err, resp, body) {
 
 		var userPageUrl = hlBaseUrl + $(userLink).attr('href');
 
-		if (userPageUrl != 'http://www.hackerleague.org/users/jtam')
+		if (userPageUrl != 'http://www.hackerleague.org/users/jtam' &&
+			userPageUrl != 'http://www.hackerleague.org/users/csherland')
 			return;
 
 		if (userList.indexOf(userPageUrl) < 0) {
 			userList.push(userPageUrl);
-			console.log(userPageUrl);
+			// console.log(userPageUrl);
 			scrapeUser(githubList, userPageUrl)
 		}
 	});

@@ -44,7 +44,7 @@ var mongo = {
 };
 
 var mongourl = generate_mongo_url(mongo);
-
+console.log(mongourl);
 app.get('/commits', function(req, res) {
 	var repo = req.query['repo'] ? req.query['repo'] : 'committing';
 	

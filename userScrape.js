@@ -7,7 +7,7 @@ var ghBaseUrl = 'http://www.github.com/'; // needs the slash
 
 // emitter.setMaxListeners(0);
 
-var scrapeUser = function(gihubList, userPageUrl) {
+var scrapeUser = function(githubList, userPageUrl) {
 
 	request(userPageUrl, function(err, resp, body){
 		var $ = cheerio.load(body);
@@ -21,7 +21,7 @@ var scrapeUser = function(gihubList, userPageUrl) {
 			if (gitUrl != ghBaseUrl) {
 				if (githubList.indexOf(gitUrl) < 0) {
 					githubList.push(gitUrl);
-					
+
 					console.log(gitUrl);
 				}
 			}

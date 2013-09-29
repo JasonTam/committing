@@ -71,7 +71,7 @@ app.get('/commits/rickshaw', function(req, res) {
 		var repos = {}; // set of repos
 		var commits = []; // list of repos and their commits
 
-		collection.find().sort({time: 1}).each(function(err, commit) {
+		collection.find().sort({time: 1, repo: 1}).each(function(err, commit) {
 
 			// close database
 			if (commit == null) {
@@ -132,7 +132,7 @@ app.get('/commits/users/rickshaw', function(req, res) {
 		var users = {}; // set of users
 		var commits = []; // list of users and their commits
 
-		collection.find().sort({time: 1}).each(function(err, commit) {
+		collection.find().sort({time: 1, committer: 1}).each(function(err, commit) {
 
 			// close database
 			if (commit == null) {

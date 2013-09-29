@@ -1,25 +1,66 @@
+html, body {
+	margin: 0px;
+	padding: 0px;
+	height: 100%;
+	width: 100%;
+}
+
+body {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+h1 {
+	font-family: 'Inconsolata', sans-serif;
+	font-size: 48pt;
+}
+
+h2 {
+	font-family: 'Inconsolata', sans-serif;
+	font-size: 32pt;
+}
+
+.main {
+	padding-left: 1%;
+	padding-right: 1%;
+}
+
 .label a, .label a:link, .label a:visited {
 	color: white;
 	text-decoration: none;
 }
 
+.rickshaw_legend {
+	font-family: 'Inconsolata', sans-serif;
+	font-size: 10pt;
+}
+
+#render_form {
+	padding-top: 10px;
+}
+
+#render_form label {
+	font-family: 'Inconsolata', sans-serif;
+	font-size: 11pt;	
+}
+
 #chart_container {
-        position: relative;
-        display: inline-block;
-        font-family: Arial, Helvetica, sans-serif;
+	position: relative;
+	display: inline-block;
+	font-family: Arial, Helvetica, sans-serif;
 }
 #chart {
-        display: inline-block;
-        margin-left: 40px;
+	display: inline-block;
+	margin-left: 40px;
 }
 #y_axis {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 40px;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 40px;
 }
-#legend {
-        display: inline-block;
-        vertical-align: top;
-        margin: 0 0 0 10px;
+.sidebar {
+	display: inline-block;
+	vertical-align: top;
+	margin: 0 0 0 10px;
 }

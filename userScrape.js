@@ -33,13 +33,12 @@ request(partsUrl, function(err, resp, body){
 
 	$(userLinks).each(function(i, userLink){
 	var userPageUrl = hlBaseUrl + $(userLink).attr('href');
-	console.log(userPageUrl);
-	scrapeUser(userPageUrl)
+	
 		var userPageUrl = hlBaseUrl + $(userLink).attr('href');
 
 		if (userList.indexOf(userPageUrl) < 0) {
 			userList.push(userPageUrl);
-
+			console.log(userPageUrl);
 			scrapeUser(userPageUrl)
 		}
 	});

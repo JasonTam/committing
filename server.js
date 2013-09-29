@@ -7,6 +7,7 @@ app.use(express.static(__dirname + '/public'));
 
 app.listen(process.env.PORT || 8080);
 
+var start = new Date('2013-09-28T18:00Z');
 var access_token = "9b73db13aedb532621c2318d0bc5c5d6955a4805";
 
 var mongo;
@@ -164,19 +165,21 @@ var getCommitDetail = function(owner, repo, sha) {
 	});
 }
 
-var checkCommit = function(commit) {
+var checkCommit = function(owner, repo, commit) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
-		
-		var collection = db.collection('commits');
-		if (!collection.find({
-			sha: commit.sha
-		}).limit(1)) {
-			getCommitDetail(owner, repo, commit.sha);
-		};
 
-		db.close();
+		var collection = db.collection('commits');
+		collection.findOne({
+			sha: commit.sha
+		}, function(err, single) {
+			if (!single) {
+				getCommitDetail(owner, repo, commit.sha);
+			}
+
+			db.close();
+		});
 	});
 }
 
@@ -190,7 +193,11 @@ var getActivity = function(owner, repo) {
 			for (var c in body) {
 				var commit = body[c];
 
-				checkCommit(commit);
+				var time = new Date(commit.commit.committer.date);
+
+				if (time > start) {
+					checkCommit(owner, repo, commit);
+				}
 			}
 		} else if (err) {
 			console.error(err.message);
@@ -222,4 +229,4 @@ var update = function() {
 	});
 }
 
-setInterval(update, 1000 * 60 * 30);
+update();

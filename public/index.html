@@ -2,6 +2,7 @@
 
 <head>
 
+	<link rel="stylesheet" href="/css/rickshaw.min.css">
 	<link rel="stylesheet" href="/css/style.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
 
@@ -23,7 +24,7 @@
 
 	graph = new Rickshaw.Graph.Ajax( {
 		element: document.getElementById("chart"),
-		width: 1200,
+		width: 1024,
 		height: 600,
 		renderer: 'line',
 		min: 'auto',
@@ -42,6 +43,14 @@
 				graph: transport.graph
 			});
 			x_axis.graph.update();
+
+			var y_ticks = new Rickshaw.Graph.Axis.Y({
+				graph: transport.graph,
+				orientation: 'left',
+				tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+				element: document.getElementById('y_axis'),
+			});
+			y_ticks.graph.update();
 
 			var legend = new Rickshaw.Graph.Legend( {
 				element: document.querySelector('#legend'),

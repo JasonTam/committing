@@ -18,7 +18,7 @@ var getGithubUser = function(url) {
 };
 
 var getRepos = function(user) {
-	request('https://api.github.com/users/' + user + 'repos?sort=created', function(err, resp, body) {
+	request('https://api.github.com/users/' + user + '/repos?sort=created', function(err, resp, body) {
 		console.log(resp);
 	});
 }
@@ -27,12 +27,12 @@ var scrapeUser = function(githubList, userPageUrl) {
 
 	request(userPageUrl, function(err, resp, body){
 		var $ = cheerio.load(body);
-
 		// Git Profile Links
 		var gitLinks = $('.contact_row > a.github.icon');
-
 		$(gitLinks).each(function(i, gitLink){
 			var gitUrl = $(gitLink).attr('href');
+			var girUrlPhrases = gitUrl.split("/");
+			gitUrl = ghBaseUrl + girUrlPhrases[girUrlPhrases.length-1]
 			var ghUser = getGithubUser(gitUrl);
 
 			if (gitUrl != ghBaseUrl) {
@@ -62,7 +62,6 @@ request(partsUrl, function(err, resp, body){
 		if (userList.indexOf(userPageUrl) < 0) {
 			userList.push(userPageUrl);
 			console.log(userPageUrl);
-
 			scrapeUser(githubList, userPageUrl)
 		}
 	});

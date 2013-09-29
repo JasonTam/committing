@@ -10,6 +10,9 @@ var ghBaseUrl = 'http://www.github.com/'; // needs the slash
 
 var start = new Date('2013-09-28T18:00Z');
 
+/* GITHUB */
+var access_token = "9b73db13aedb532621c2318d0bc5c5d6955a4805";
+
 /* MONGODB */
 var mongo;
 var mongourl;
@@ -74,7 +77,7 @@ var getCommitDetail = function(owner, repo, sha) {
 	request.get({
 		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits/' + sha,
 		json: true,
-		qs: {access_token: "9b73db13aedb532621c2318d0bc5c5d6955a4805"}
+		qs: {access_token: access_token}
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {
 			var time = new Date(body.commit.committer.date);
@@ -102,7 +105,7 @@ var getActivity = function(owner, repo) {
 	request.get({
 		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits',
 		json: true,
-		qs: {access_token: "9b73db13aedb532621c2318d0bc5c5d6955a4805"}
+		qs: {access_token: access_token}
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {
 			for (var c in body) {
@@ -126,7 +129,7 @@ var getRepos = function(user) {
 	request.get({
 		uri: 'https://api.github.com/users/' + user + '/repos?sort=created', 
 		json: true,
-		qs: {access_token: "9b73db13aedb532621c2318d0bc5c5d6955a4805"}
+		qs: {access_token: access_token}
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {
 			var repo_hack;
@@ -214,9 +217,9 @@ request(partsUrl, function(err, resp, body) {
 
 		var userPageUrl = hlBaseUrl + $(userLink).attr('href');
 
-		if (userPageUrl != 'http://www.hackerleague.org/users/jtam' &&
-			userPageUrl != 'http://www.hackerleague.org/users/csherland')
-			return;
+		// if (userPageUrl != 'http://www.hackerleague.org/users/jtam' &&
+		// 	userPageUrl != 'http://www.hackerleague.org/users/csherland')
+		// 	return;
 
 		if (userList.indexOf(userPageUrl) < 0) {
 			userList.push(userPageUrl);

@@ -68,21 +68,21 @@ app.get('/commits/rickshaw', function(req, res) {
 				return;
 			}
 
-			// this is a new repo!
-			if (repos[commit.repo] === undefined) {
-				repos[commit.repo] = commits.length;
-
-				commits.push({
-					name: commit.repo,
-					data: []
-				})
-			}
-
 			// net lines
 			var net = commit.additions - commit.deletions;
 
 			// add this commit to the repo
 			if (net < 100) {
+				// this is a new repo!
+				if (repos[commit.repo] === undefined) {
+					repos[commit.repo] = commits.length;
+
+					commits.push({
+						name: commit.repo,
+						data: []
+					})
+				}
+
 				commits[repos[commit.repo]].data.push({
 					x: commit.time.getTime() / 1000,
 					y: net

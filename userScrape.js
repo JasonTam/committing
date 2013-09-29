@@ -58,7 +58,7 @@ var insertCommit = function(data) {
 		db.collection("commits", function(err, collection) {
 			
 			collection.ensureIndex('time', function() {
-				console.log(data);
+				// console.log(data);
 
 				/* Note the _id has been created */
 				collection.insert(data, {
@@ -88,6 +88,7 @@ var getCommitDetail = function(owner, repo, sha) {
 			insertCommit({
 				time: time,
 				repo: repo,
+				owner: owner,
 				name: body.commit.committer.name,
 				username: body.author.login,
 				additions: body.stats.additions,
@@ -103,6 +104,8 @@ var getCommitDetail = function(owner, repo, sha) {
 }
 
 var getActivity = function(owner, repo) {
+	// console.log(repo);
+
 	request.get({
 		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits',
 		json: true,
@@ -127,7 +130,7 @@ var getActivity = function(owner, repo) {
 };
 
 var getRepos = function(user) {
-	var uri = 'https://api.github.com/users/' + user + '/repos?sort=created';
+	var uri = 'https://api.github.com/users/' + user + '/repos?sort=pushed';
 
 	request.get({
 		uri: uri, 

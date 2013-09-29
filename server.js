@@ -78,7 +78,7 @@ app.get('/commits/rickshaw', function(req, res) {
 					repos[commit.repo] = commits.length;
 
 					commits.push({
-						name: commit.repo,
+						name: commit.owner + '/' + commit.repo,
 						data: []
 					})
 				}

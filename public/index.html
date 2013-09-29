@@ -17,47 +17,5 @@
 	</div>
 	<div id="legend"></div>
 
-	<script>
-	var palette = new Rickshaw.Color.Palette( );
-
-	var graph;
-
-	graph = new Rickshaw.Graph.Ajax( {
-		element: document.getElementById("chart"),
-		width: 1024,
-		height: 600,
-		renderer: 'line',
-		min: 'auto',
-		interpolation: 'linear',
-		stroke: true,
-		dataURL: '/commits/rickshaw',
-		onData: function(data) { 
-			for (var d in data) {
-				data[d].color = palette.color();
-			}
-
-			return data;
-		},
-		onComplete: function(transport) {
-			var x_axis = new Rickshaw.Graph.Axis.Time({
-				graph: transport.graph
-			});
-			x_axis.graph.update();
-
-			var y_ticks = new Rickshaw.Graph.Axis.Y({
-				graph: transport.graph,
-				orientation: 'left',
-				tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-				element: document.getElementById('y_axis'),
-			});
-			y_ticks.graph.update();
-
-			var legend = new Rickshaw.Graph.Legend( {
-				element: document.querySelector('#legend'),
-				graph: transport.graph
-			});
-			legend.graph.update();
-		}
-	});
-	</script>
+	<script src="/js/chart.js"></script>
 </body>

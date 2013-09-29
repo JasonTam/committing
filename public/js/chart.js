@@ -10,7 +10,7 @@ graph = new Rickshaw.Graph.Ajax( {
 	min: 'auto',
 	interpolation: 'linear',
 	stroke: true,
-	dataURL: '/commits/rickshaw',
+	dataURL: dataURL,
 	onData: function(data) { 
 		for (var d in data) {
 			data[d].color = palette.color();

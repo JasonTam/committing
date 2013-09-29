@@ -12,11 +12,16 @@ var scrapeUser = function(userPageUrl) {
 	request(userPageUrl, function(err, resp, body){
 		var $ = cheerio.load(body);
 
-		//Git Profile Links
+		// Git Profile Links
 		gitLinks = $('.contact_row > a.github.icon'); 
+
 		$(gitLinks).each(function(i, gitLink){
+<<<<<<< HEAD
 		var gitUrl = $(gitLink).attr('href');
 		if (gitUrl!=ghBaseUrl)
+=======
+			var gitUrl = $(gitLink).attr('href');
+>>>>>>> e130367122d497249abcd34e97f0ff5604b1c0e5
 			console.log(gitUrl);
 		});
 	});
@@ -25,13 +30,25 @@ var scrapeUser = function(userPageUrl) {
 
 request(partsUrl, function(err, resp, body){
 	var $ = cheerio.load(body);
+	var userList = [];
 
-	//User Page Links
-	userLinks = $('.user > .details > a'); 
+	// User Page Links
+	userLinks = $('div#participants .user > .details > a.username');
+
 	$(userLinks).each(function(i, userLink){
+<<<<<<< HEAD
 	var userPageUrl = hlBaseUrl + $(userLink).attr('href');
 	console.log(userPageUrl);
 	scrapeUser(userPageUrl)
+=======
+		var userPageUrl = baseUrl + $(userLink).attr('href');
+
+		if (userList.indexOf(userPageUrl) < 0) {
+			userList.push(userPageUrl);
+
+			scrapeUser(userPageUrl)
+		}
+>>>>>>> e130367122d497249abcd34e97f0ff5604b1c0e5
 	});
 
 });

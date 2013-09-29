@@ -5,7 +5,7 @@ var hlBaseUrl = 'http://www.hackerleague.org/';
 var partsUrl = hlBaseUrl + 'hackathons/fall-2013-hackny-student-hackathon/participations';
 var ghBaseUrl = 'http://www.github.com/';
 
-emitter.setMaxListeners(0);
+// emitter.setMaxListeners(0);
 
 var scrapeUser = function(userPageUrl) {
 

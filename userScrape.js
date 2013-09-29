@@ -7,18 +7,24 @@ var ghBaseUrl = 'http://www.github.com/'; // needs the slash
 
 // emitter.setMaxListeners(0);
 
-var scrapeUser = function(userPageUrl) {
+var scrapeUser = function(gihubList, userPageUrl) {
 
 	request(userPageUrl, function(err, resp, body){
 		var $ = cheerio.load(body);
 
 		// Git Profile Links
-		gitLinks = $('.contact_row > a.github.icon'); 
+		var gitLinks = $('.contact_row > a.github.icon');
 
 		$(gitLinks).each(function(i, gitLink){
 			var gitUrl = $(gitLink).attr('href');
-			if (gitUrl != ghBaseUrl)
-				console.log(gitUrl);
+
+			if (gitUrl != ghBaseUrl) {
+				if (githubList.indexOf(gitUrl) < 0) {
+					githubList.push(gitUrl);
+					
+					console.log(gitUrl);
+				}
+			}
 		});
 	});
 
@@ -27,9 +33,10 @@ var scrapeUser = function(userPageUrl) {
 request(partsUrl, function(err, resp, body){
 	var $ = cheerio.load(body);
 	var userList = [];
+	var githubList = [];
 
 	// User Page Links
-	userLinks = $('div#participants .user > .details > a.username');
+	var userLinks = $('div#participants .user > .details > a.username');
 
 	$(userLinks).each(function(i, userLink){
 
@@ -39,7 +46,7 @@ request(partsUrl, function(err, resp, body){
 			userList.push(userPageUrl);
 			console.log(userPageUrl);
 
-			scrapeUser(userPageUrl)
+			scrapeUser(githubList, userPageUrl)
 		}
 	});
 

@@ -107,7 +107,7 @@ var getActivity = function(owner, repo) {
 	// console.log(repo);
 
 	request.get({
-		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits',
+		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits?per_page=100',
 		json: true,
 		qs: {access_token: access_token}
 	}, function(err, resp, body) {

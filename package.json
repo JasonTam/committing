@@ -4,7 +4,8 @@
   "dependencies": {
     "request": "*",
     "cheerio": "*",
-    "express": "*"
+    "express": "*",
+    "mongodb": "*"
   },
   "scripts": {
     "start": "./server.js"
@@ -17,5 +18,5 @@
     "node": ">=0.10"
   },
   "subdomain": "committing",
-  "version": "0.0.0-6"
+  "version": "0.0.0-8"
 }

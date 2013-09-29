@@ -16,12 +16,8 @@ var scrapeUser = function(userPageUrl) {
 		gitLinks = $('.contact_row > a.github.icon'); 
 
 		$(gitLinks).each(function(i, gitLink){
-<<<<<<< HEAD
 		var gitUrl = $(gitLink).attr('href');
 		if (gitUrl!=ghBaseUrl)
-=======
-			var gitUrl = $(gitLink).attr('href');
->>>>>>> e130367122d497249abcd34e97f0ff5604b1c0e5
 			console.log(gitUrl);
 		});
 	});
@@ -36,11 +32,9 @@ request(partsUrl, function(err, resp, body){
 	userLinks = $('div#participants .user > .details > a.username');
 
 	$(userLinks).each(function(i, userLink){
-<<<<<<< HEAD
 	var userPageUrl = hlBaseUrl + $(userLink).attr('href');
 	console.log(userPageUrl);
 	scrapeUser(userPageUrl)
-=======
 		var userPageUrl = baseUrl + $(userLink).attr('href');
 
 		if (userList.indexOf(userPageUrl) < 0) {
@@ -48,7 +42,6 @@ request(partsUrl, function(err, resp, body){
 
 			scrapeUser(userPageUrl)
 		}
->>>>>>> e130367122d497249abcd34e97f0ff5604b1c0e5
 	});
 
 });

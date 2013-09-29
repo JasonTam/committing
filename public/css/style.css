@@ -13,11 +13,34 @@ body {
 h1 {
 	font-family: 'Inconsolata', sans-serif;
 	font-size: 48pt;
+
+	display: inline-block;
+
+	margin-top: .25em;
+	margin-bottom: .25em;
 }
 
 h2 {
 	font-family: 'Inconsolata', sans-serif;
 	font-size: 32pt;
+
+	display: inline-block;
+	padding-left: 32px;
+
+	margin-top: .25em;
+	margin-bottom: .25em;
+}
+
+.nav {
+	font-family: 'Inconsolata', sans-serif;
+	font-size: 24pt;
+
+	padding-left: 60px;
+	padding-bottom: .5em;
+}
+
+.nav a {
+	padding-right: 60px;
 }
 
 .main {
@@ -28,6 +51,15 @@ h2 {
 .label a, .label a:link, .label a:visited {
 	color: white;
 	text-decoration: none;
+}
+
+a, a:link, a:visited {
+	color: darkGray;
+	text-decoration: none;
+}
+
+a:hover {
+	color: black;
 }
 
 .rickshaw_legend {

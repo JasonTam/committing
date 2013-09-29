@@ -38,19 +38,70 @@ graph = new Rickshaw.Graph.Ajax( {
 		});
 		legend.graph.update();
 
-		var hoverDetail = new Rickshaw.Graph.HoverDetail({
-			graph: transport.graph
-		});
-		
-
 		var renderForm = document.getElementById('render_form');
 		renderForm.addEventListener('change', function(e) {
-				var renderMode = e.target.value;
-				transport.graph.setRenderer(renderMode);
-				transport.graph.render();
+			var renderMode = e.target.value;
+			transport.graph.setRenderer(renderMode);
+			transport.graph.render();
 		}, false);
 		
-			
+		var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
+
+			render: function(args) {
+
+				var graph = this.graph;
+				var points = args.points;
+				var point = points.filter( function(p) { return p.active } ).shift();
+
+				if (point.value.y === null) return;
+
+				var formattedXValue = point.formattedXValue;
+				var formattedYValue = point.formattedYValue;
+
+				this.element.innerHTML = '';
+				this.element.style.left = graph.x(point.value.x) + 'px';
+
+				var xLabel = document.createElement('div');
+
+				xLabel.className = 'x_label';
+				xLabel.innerHTML = formattedXValue;
+				this.element.appendChild(xLabel);
+
+				var item = document.createElement('div');
+
+				item.className = 'item';
+
+				// invert the scale if this series displays using a scale
+				var series = point.series;
+				var actualY = series.scale ? series.scale.invert(point.value.y) : point.value.y;
+
+				item.innerHTML = this.formatter(series, point.value.x, actualY, formattedXValue, formattedYValue, point) + '</br>' + point.value.committer + ': ' + point.value.message;
+				item.style.top = this.graph.y(point.value.y0 + point.value.y) + 'px';
+
+				this.element.appendChild(item);
+
+				var dot = document.createElement('div');
+
+				dot.className = 'dot';
+				dot.style.top = item.style.top;
+				dot.style.borderColor = series.color;
+
+				this.element.appendChild(dot);
+
+				if (point.active) {
+					item.className = 'item active';
+					dot.className = 'dot active';
+				}
+
+				this.show();
+
+				if (typeof this.onRender == 'function') {
+					this.onRender(args);
+				}
+			}
+		});
+
+		var hover = new Hover( { graph: transport.graph } ); 
 
 		$('.label').each(function(i, label) {
 			$(this).html($('<a>').attr('href', 'http://github.com/' + $(this).text()).text($(this).text()));

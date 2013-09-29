@@ -101,12 +101,16 @@ app.get('/commits/rickshaw', function(req, res) {
 
 					commits[repos[commit.repo]].data.push({
 						x: commit.time.getTime() / 1000,
-						y: prev_net + net
+						y: prev_net + net,
+						committer: commit.name,
+						message: commit.message
 					});
 				} else {
 					commits[repos[commit.repo]].data.push({
 						x: commit.time.getTime() / 1000,
-						y: net
+						y: net,
+						committer: commit.name,
+						message: commit.message
 					});
 				}
 			}
@@ -234,6 +238,18 @@ var update = function() {
 }
 
 if (process.env.NODE_ENV == 'production') {
-	scrape();
+	/* Connect to the DB and auth */
+	MongoClient.connect(mongourl, function(err, db) {
+		if(err) { return console.warn(err); }
+		
+		db.collection("commits", function(err, collection) {
+			
+			collection.remove(function() {
+				db.close();
+
+				scrape();
+			});
+		});
+	});
 }
 setInterval(update, 1000 * 60 * 5);

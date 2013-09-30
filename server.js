@@ -9,6 +9,7 @@ app.use(express.static(__dirname + '/public'));
 app.listen(process.env.PORT || 8080);
 
 var start = new Date('2013-09-28T18:00Z');
+var end = new Date('2013-09-29T16:00Z');
 var access_token = "9b73db13aedb532621c2318d0bc5c5d6955a4805";
 
 var mongo;
@@ -22,7 +23,6 @@ var generate_mongo_url = function(obj) {
 
 	// If on NodeJitsu Server
 	if (process.env.NODE_ENV=='production') {
-		console.log("inside");
 		return 'mongodb://nodejitsu:dffd4e320b733a127ea2e371f7c4f926@paulo.mongohq.com:10060/nodejitsudb2293466096';
 	}
 	
@@ -339,7 +339,7 @@ var getCommitDetail = function(owner, repo, sha) {
 				repo: repo,
 				owner: owner,
 				name: body.commit.committer.name,
-				committer: body.committer.login,
+				committer: body.commit.committer.login,
 				username: body.author.login,
 				additions: body.stats.additions,
 				deletions: body.stats.deletions,
@@ -385,7 +385,7 @@ var getActivity = function(owner, repo) {
 
 				var time = new Date(commit.commit.committer.date);
 
-				if (time > start) {
+				if (time > start && time <= end) {
 					checkCommit(owner, repo, commit);
 				}
 			}

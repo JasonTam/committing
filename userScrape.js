@@ -9,9 +9,10 @@ var partsUrl = hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon/parti
 var ghBaseUrl = 'http://www.github.com/'; // needs the slash
 
 var start = new Date('2013-09-28T18:00Z');
+var end = new Date('2013-09-29T16:00Z');
 
 /* GITHUB */
-var access_token = "9b73db13aedb532621c2318d0bc5c5d6955a4805";
+var access_token = "bb0e5ae2d93b466b4c126d925ab08c8b4cb3cea4";
 
 /* MONGODB */
 var mongo;
@@ -128,7 +129,7 @@ var getActivity = function(owner, repo) {
 
 				var time = new Date(commit.commit.committer.date);
 
-				if (time > start) {
+				if (time > start && time <= end) {
 					getCommitDetail(owner, repo, commit.sha);
 				}
 			}

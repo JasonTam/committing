@@ -437,9 +437,9 @@ if (process.env.NODE_ENV == 'production') {
 
 						scrape.scrapeUrl(hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon' + participationUrl);
 						scrape.scrapeUrl(hlBaseUrl + '/hackathons/spring-2013-hackny-student-hackathon' + participationUrl);
-						scrape.scrapeUrl(hlBaseUrl + '/hackathons/spring-2012-hackny-student-hackathon' + participationUrl);
-						scrape.scrapeUrl(hlBaseUrl + '/hackathons/fall-2012-hackny-student-hackathon' + participationUrl);
 						scrape.scrapeUrl(hlBaseUrl + '/hackathons/techcrunch-disrupt-sf-2013' + participationUrl);
+						// scrape.scrapeUrl(hlBaseUrl + '/hackathons/spring-2012-hackny-student-hackathon' + participationUrl);
+						// scrape.scrapeUrl(hlBaseUrl + '/hackathons/fall-2012-hackny-student-hackathon' + participationUrl);
 					});
 				});
 			});

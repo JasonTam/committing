@@ -6,7 +6,6 @@ var MongoClient = require('mongodb').MongoClient;
 
 var hlBaseUrl = 'http://www.hackerleague.org';
 var participationUrl = '/participations';
-var partsUrl = hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon' + participationUrl;
 var ghBaseUrl = 'http://www.github.com/'; // needs the slash
 
 /* GITHUB */
@@ -142,8 +141,10 @@ var getCommitDetail = function(hlid, owner, repo, sha, end) {
 }
 
 var getActivity = function(hlid, start, end, owner, repo) {
+	var url = 'https://api.github.com/repos/' + owner + '/' + repo + '/commits?per_page=100';
+
 	request.get({
-		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits?per_page=100',
+		uri: url,
 		json: true,
 		qs: {access_token: access_token}
 	}, function(err, resp, body) {
@@ -160,13 +161,15 @@ var getActivity = function(hlid, start, end, owner, repo) {
 		} else if (err) {
 			console.error(err.message);
 		} else {
-			console.error('Error getting activity from ' + owner + '/' + repo + ': ' + resp.statusCode);
+			console.error('Error getting activity from ' + url + ' : ' + resp.statusCode);
 		}
 	});
 };
 
 var getRepos = function(hlid, start, end, user) {
-	var uri = 'https://api.github.com/users/' + user + '/repos?sort=pushed';
+	var uri = 'https://api.github.com/users/' + user + '/repos?sort=created';
+
+	var end_plus = new Date(end.getTime() + 12 * 60 * 60 * 1000);
 
 	request.get({
 		uri: uri, 
@@ -179,22 +182,31 @@ var getRepos = function(hlid, start, end, user) {
 			for (var r in body) {
 				var repo = body[r];
 
-				// var created_at = new Date(repo.created_at);
+				var created_at = new Date(repo.created_at);
 
-				// if (created_at > start) {
-				// 	repo_hack = repo;
-				// 	break;
-				// }
+				if (created_at >= start && created_at < end) {
+					repo_hack = repo;
+					break;
+				}
+			}
 
-				repo_hack = repo;
+			if (!repo_hack) {
+				for (var r in body) {
+					var repo = body[r];
 
-				break;
+					var pushed_at = new Date(repo.pushed_at);
+
+					if (pushed_at >= start && pushed_at < end) {
+						repo_hack = repo;
+						break;
+					}
+				}
 			}
 
 			if (repo_hack) {
 				getActivity(hlid, start, end, repo_hack.owner.login, repo_hack.name);
 			} else {
-				console.log(user + ' has ' + body.length + ' repos but none are recent.');
+				console.log(user + ' has ' + body.length + ' repos but none are during ' + hlid);
 			}
 		} else if (err) {
 			console.error(err.message);
@@ -270,7 +282,6 @@ var scrape = function(url) {
 
 			if (userList.indexOf(userPageUrl) < 0) {
 				userList.push(userPageUrl);
-				// console.log(userPageUrl);
 				scrapeUser(hlid, start, end, githubList, userPageUrl)
 			}
 		});
@@ -278,8 +289,10 @@ var scrape = function(url) {
 	});
 };
 
-// scrape(partsUrl);
+// scrape(hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon' + participationUrl);
 // scrape(hlBaseUrl + '/hackathons/spring-2013-hackny-student-hackathon' + participationUrl);
+// scrape(hlBaseUrl + '/hackathons/spring-2012-hackny-student-hackathon' + participationUrl);
+// scrape(hlBaseUrl + '/hackathons/fall-2012-hackny-student-hackathon' + participationUrl);
 // scrape(hlBaseUrl + '/hackathons/techcrunch-disrupt-sf-2013' + participationUrl);
 
 module.exports.scrapeUrl = scrape;

@@ -20,6 +20,15 @@ h1 {
 	margin-bottom: .25em;
 }
 
+h1 > a, h1 > a:link, h1 > a:visited {
+	color: black;
+	text-decoration: none;
+}
+
+h1 > a:hover {
+	color: darkGray;
+}
+
 h2 {
 	font-family: 'Inconsolata', sans-serif;
 	font-size: 28pt;
@@ -29,6 +38,10 @@ h2 {
 
 	margin-top: .25em;
 	margin-bottom: .25em;
+}
+
+li {
+	list-style-type: none;
 }
 
 .nav {

@@ -8,7 +8,7 @@ app.use(express.static(__dirname + '/public'));
 
 app.listen(process.env.PORT || 8080);
 
-var access_token = '9b73db13aedb532621c2318d0bc5c5d6955a4805';
+var access_token = 'bb0e5ae2d93b466b4c126d925ab08c8b4cb3cea4';
 
 var mongo;
 var mongourl;
@@ -17,7 +17,6 @@ var generate_mongo_url = function(obj) {
 	obj.hostname = (obj.hostname || 'localhost');
 	obj.port = (obj.port || 27017);
 	obj.db = (obj.db || 'committing');
-	
 
 	// If on NodeJitsu Server
 	if (process.env.NODE_ENV=='production') {
@@ -53,14 +52,13 @@ app.get('/', function(req, res) {
 		if(err) { return console.dir(err); }
 		
 		var collection = db.collection('hackathons');
-		collection.findOne({hlid: 'fall-2013-hackny-student-hackathon'}, function(err, hackathon) {
-			console.log(hackathon);
-
-			if (hackathon) {
+		collection.find().sort({end: -1}).toArray(function(err, hackathons) {
+			if (hackathons) {
 				res.render('index', {
-					hackathon: hackathon,
-					dataUrl: '/api/' + hackathon.hlid + '/repos'
+					hackathons: hackathons
 				});
+			} else {
+				res.send(500);
 			}
 
 			db.close();
@@ -313,13 +311,13 @@ app.get('/:hlid', function(req, res) {
 		
 		var collection = db.collection('hackathons');
 		collection.findOne({hlid: req.params.hlid}, function(err, hackathon) {
-			console.log(hackathon);
-
 			if (hackathon) {
-				res.render('index', {
+				res.render('hackathon', {
 					hackathon: hackathon,
-					dataUrl: '/api/' + hackathon.hlid + '/repos'
+					disp: 'repos'
 				});
+			} else {
+				res.send(404);
 			}
 
 			db.close();
@@ -327,20 +325,20 @@ app.get('/:hlid', function(req, res) {
 	});
 });
 
-app.get('/:hlid/:type', function(req, res) {
+app.get('/:hlid/:disp', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
 		
 		var collection = db.collection('hackathons');
 		collection.findOne({hlid: req.params.hlid}, function(err, hackathon) {
-			console.log(hackathon);
-
 			if (hackathon) {
-				res.render('index', {
+				res.render('hackathon', {
 					hackathon: hackathon,
-					dataUrl: '/api/' + hackathon.hlid + '/' + req.params.type
+					disp: req.params.disp
 				});
+			} else {
+				res.send(404);
 			}
 
 			db.close();
@@ -369,8 +367,9 @@ var checkCommit = function(hlid, owner, repo, commit, end) {
 }
 
 var getActivity = function(hlid, owner, repo, start, end) {
+	var url = 'https://api.github.com/repos/' + owner + '/' + repo + '/commits?per_page=100';
 	request.get({
-		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits?per_page=100',
+		uri: url,
 		json: true,
 		qs: {access_token: access_token}
 	}, function(err, resp, body) {
@@ -387,7 +386,7 @@ var getActivity = function(hlid, owner, repo, start, end) {
 		} else if (err) {
 			console.error(err.message);
 		} else {
-			console.error('Error getting activity from ' + owner + '/' + repo + ': ' + resp.statusCode);
+			console.error('Error getting activity from ' + url + ' : ' + resp.statusCode);
 		}
 	});
 }
@@ -430,7 +429,14 @@ if (process.env.NODE_ENV == 'production') {
 			collection.remove(function() {
 				db.close();
 
-				scrape.scrapeUrl('http://www.hackerleague.org/hackathons/fall-2013-hackny-student-hackathon/participations');
+				var hlBaseUrl = 'http://www.hackerleague.org';
+				var participationUrl = '/participations';
+
+				scrape.scrapeUrl(hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon' + participationUrl);
+				scrape.scrapeUrl(hlBaseUrl + '/hackathons/spring-2013-hackny-student-hackathon' + participationUrl);
+				scrape.scrapeUrl(hlBaseUrl + '/hackathons/spring-2012-hackny-student-hackathon' + participationUrl);
+				scrape.scrapeUrl(hlBaseUrl + '/hackathons/fall-2012-hackny-student-hackathon' + participationUrl);
+				scrape.scrapeUrl(hlBaseUrl + '/hackathons/techcrunch-disrupt-sf-2013' + participationUrl);
 			});
 		});
 	});

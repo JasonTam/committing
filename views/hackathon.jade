@@ -1,7 +1,7 @@
 !!! 5
 html(lang='en')
 	head
-			title committing/repos
+			title committing/#{hackathon.hlid}/#{disp}
 			link(href='http://fonts.googleapis.com/css?family=Inconsolata', rel='stylesheet', type='text/css')
 			link(rel='stylesheet', href='/css/rickshaw.min.css')
 			link(rel='stylesheet', href='/css/style.css')
@@ -20,7 +20,7 @@ html(lang='en')
 				a(href='/#{hackathon.hlid}') /repos
 				a(href='/#{hackathon.hlid}/users') /users
 				a(href='/#{hackathon.hlid}/commits') /commits
-				a(href='/#{hackathon.hlid}/deletes') /deletes
+				a(href='/#{hackathon.hlid}/files') /files
 			#chart_container
 				#y_axis
 				#chart

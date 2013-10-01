@@ -90,7 +90,7 @@ app.get('/api/:hlid/repos', function(req, res) {
 			var net = commit.additions - commit.deletions;
 
 			// add this commit to the repo
-			if (net < 1000) {
+			if (Math.abs(net) < 1000) {
 				// this is a new repo!
 				if (repos[commit.repo] === undefined) {
 					repos[commit.repo] = commits.length;
@@ -151,7 +151,7 @@ app.get('/api/:hlid/users', function(req, res) {
 			var net = commit.additions - commit.deletions;
 
 			// add this commit to the repo
-			if (net < 1000) {
+			if (Math.abs(net) < 1000) {
 				// this is a new repo!
 				if (users[commit.committer] === undefined) {
 					users[commit.committer] = commits.length;
@@ -188,17 +188,17 @@ app.get('/api/:hlid/users', function(req, res) {
 	});
 });
 
-app.get('/api/:hlid/deletes', function(req, res) {
+app.get('/api/:hlid/files', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
 		
 		var collection = db.collection('commits');
 
-		var users = {}; // set of users
-		var commits = []; // list of users and their commits
+		var repos = {}; // set of repos
+		var commits = []; // list of repos and their commits
 
-		collection.find({hlid: req.params.hlid}).sort({time: 1, committer: 1}).each(function(err, commit) {
+		collection.find({hlid: req.params.hlid}).sort({time: 1, repo: 1}).each(function(err, commit) {
 
 			// close database
 			if (commit == null) {
@@ -209,37 +209,37 @@ app.get('/api/:hlid/deletes', function(req, res) {
 			}
 
 			// net lines
-			var net = commit.additions - commit.deletions;
+			var net = commit.file_additions - commit.file_deletions;
 
 			// add this commit to the repo
-			if (commit.deletions < 100) {
+			if (Math.abs(net) < 1000) {
 				// this is a new repo!
-				if (users[commit.committer] === undefined) {
-					users[commit.committer] = commits.length;
+				if (repos[commit.repo] === undefined) {
+					repos[commit.repo] = commits.length;
 
 					commits.push({
-						name: commit.committer,
+						name: commit.owner + '/' + commit.repo,
 						data: []
 					})
 				}
 
-				if (commits[users[commit.committer]].data.length > 0) {
-					var prev_net = commits[users[commit.committer]].data[commits[users[commit.committer]].data.length - 1].y;
+				if (commits[repos[commit.repo]].data.length > 0) {
+					var prev = commits[repos[commit.repo]].data[commits[repos[commit.repo]].data.length - 1].y;
 
-					commits[users[commit.committer]].data.push({
+					commits[repos[commit.repo]].data.push({
 						x: commit.time.getTime() / 1000,
-						y: commit.deletions,
-						additions: commit.additions,
-						deletions: commit.deletions,
+						y: prev + net,
+						additions: commit.file_additions,
+						deletions: commit.file_deletions,
 						committer: commit.name,
 						message: commit.message
 					});
 				} else {
-					commits[users[commit.committer]].data.push({
+					commits[repos[commit.repo]].data.push({
 						x: commit.time.getTime() / 1000,
-						y: commit.deletions,
-						additions: commit.additions,
-						deletions: commit.deletions,
+						y: net,
+						additions: commit.file_additions,
+						deletions: commit.file_deletions,
 						committer: commit.name,
 						message: commit.message
 					});
@@ -371,6 +371,8 @@ var getActivity = function(hlid, owner, repo, start, end) {
 	request.get({
 		uri: url,
 		json: true,
+		since: start.toISOString(),
+		until: end.toISOString(),
 		qs: {access_token: access_token}
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {

@@ -113,9 +113,19 @@ var getCommitDetail = function(hlid, owner, repo, sha, end) {
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {
 			var time = new Date(body.commit.committer.date);
-			var net_lines = body.stats.additions - body.stats.deletions;
 
-			// console.log(repo + ',' + body.commit.committer.name + ',' + net_lines + ',' + time.toISOString());
+			var file_additions = 0;
+			var file_deletions = 0;
+
+			if (body.files) {
+				for (var f in body.files) {
+					if (body.files[f].status == 'added') {
+						file_additions += 1;
+					} else if (body.files[f].status == 'removed') {
+						file_deletions += 1;
+					}
+				}
+			}
 
 			insertCommit({
 				time: time,
@@ -126,6 +136,8 @@ var getCommitDetail = function(hlid, owner, repo, sha, end) {
 				username: body.author ? body.author.login : undefined,
 				additions: body.stats.additions,
 				deletions: body.stats.deletions,
+				file_additions: file_additions,
+				file_deletions: file_deletions,
 				message: body.commit.message,
 				sha: sha,
 				end: end,
@@ -146,6 +158,8 @@ var getActivity = function(hlid, start, end, owner, repo) {
 	request.get({
 		uri: url,
 		json: true,
+		since: start.toISOString(),
+		until: end.toISOString(),
 		qs: {access_token: access_token}
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {
@@ -182,9 +196,13 @@ var getRepos = function(hlid, start, end, user) {
 			for (var r in body) {
 				var repo = body[r];
 
+				var pushed_at = new Date(repo.pushed_at);
 				var created_at = new Date(repo.created_at);
 
-				if (created_at >= start && created_at < end) {
+				// must be created during hackathon
+				// must be a push after creation (to avoid forks)
+				// and must have code
+				if (created_at >= start && created_at < end && pushed_at >= created_at && repo.size > 0) {
 					repo_hack = repo;
 					break;
 				}
@@ -196,7 +214,7 @@ var getRepos = function(hlid, start, end, user) {
 
 					var pushed_at = new Date(repo.pushed_at);
 
-					if (pushed_at >= start && pushed_at < end) {
+					if (pushed_at >= start && pushed_at < end_plus && repo.size > 0) {
 						repo_hack = repo;
 						break;
 					}
@@ -204,9 +222,11 @@ var getRepos = function(hlid, start, end, user) {
 			}
 
 			if (repo_hack) {
+				console.log(user + ' created ' + repo_hack.name + ' during ' + hlid);
+
 				getActivity(hlid, start, end, repo_hack.owner.login, repo_hack.name);
 			} else {
-				console.log(user + ' has ' + body.length + ' repos but none are during ' + hlid);
+				// console.log(user + ' has ' + body.length + ' repos but none are during ' + hlid);
 			}
 		} else if (err) {
 			console.error(err.message);
@@ -295,7 +315,6 @@ var scrape = function(url) {
 				scrapeUser(hlid, start, end, githubList, userPageUrl)
 			}
 		});
-
 	});
 };
 

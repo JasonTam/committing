@@ -40,11 +40,16 @@ graph = new Rickshaw.Graph.Ajax( {
 		});
 		y_ticks.graph.update();
 
-		var legend = new Rickshaw.Graph.Legend( {
+		var legend = new Rickshaw.Graph.Legend({
 			element: document.querySelector('#legend'),
 			graph: transport.graph
 		});
 		legend.graph.update();
+
+		var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
+			graph: transport.graph,
+			legend: legend
+		});
 
 		var renderForm = document.getElementById('render_form');
 		renderForm.addEventListener('change', function(e) {

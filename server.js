@@ -8,9 +8,7 @@ app.use(express.static(__dirname + '/public'));
 
 app.listen(process.env.PORT || 8080);
 
-var start = new Date('2013-09-28T18:00Z');
-var end = new Date('2013-09-29T16:00Z');
-var access_token = "9b73db13aedb532621c2318d0bc5c5d6955a4805";
+var access_token = '9b73db13aedb532621c2318d0bc5c5d6955a4805';
 
 var mongo;
 var mongourl;
@@ -18,7 +16,7 @@ var mongourl;
 var generate_mongo_url = function(obj) {
 	obj.hostname = (obj.hostname || 'localhost');
 	obj.port = (obj.port || 27017);
-	obj.db = (obj.db || 'powerdata');
+	obj.db = (obj.db || 'committing');
 	
 
 	// If on NodeJitsu Server
@@ -45,23 +43,32 @@ var mongo = {
 
 var mongourl = generate_mongo_url(mongo);
 
-app.get('/commits', function(req, res) {
-	var repo = req.query['repo'] ? req.query['repo'] : 'committing';
-	
+/* pages */
+app.set('views', __dirname + '/views');
+app.set('view engine', 'jade');
+
+app.get('/', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
 		
-		var collection = db.collection('commits');
-		collection.find({'repo': repo}).toArray(function(err, documents) {
-			res.send(documents);
+		var collection = db.collection('hackathons');
+		collection.findOne({hlid: 'fall-2013-hackny-student-hackathon'}, function(err, hackathon) {
+			console.log(hackathon);
+
+			if (hackathon) {
+				res.render('index', {
+					hackathon: hackathon,
+					dataUrl: '/api/' + hackathon.hlid + '/repos'
+				});
+			}
 
 			db.close();
 		});
 	});
 });
 
-app.get('/commits/rickshaw', function(req, res) {
+app.get('/api/:hlid/repos', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
@@ -71,7 +78,7 @@ app.get('/commits/rickshaw', function(req, res) {
 		var repos = {}; // set of repos
 		var commits = []; // list of repos and their commits
 
-		collection.find().sort({time: 1, repo: 1}).each(function(err, commit) {
+		collection.find({hlid: req.params.hlid}).sort({time: 1, repo: 1}).each(function(err, commit) {
 
 			// close database
 			if (commit == null) {
@@ -122,7 +129,7 @@ app.get('/commits/rickshaw', function(req, res) {
 	});
 });
 
-app.get('/commits/users/rickshaw', function(req, res) {
+app.get('/api/:hlid/users', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
@@ -132,7 +139,7 @@ app.get('/commits/users/rickshaw', function(req, res) {
 		var users = {}; // set of users
 		var commits = []; // list of users and their commits
 
-		collection.find().sort({time: 1, committer: 1}).each(function(err, commit) {
+		collection.find({hlid: req.params.hlid}).sort({time: 1, committer: 1}).each(function(err, commit) {
 
 			// close database
 			if (commit == null) {
@@ -183,7 +190,7 @@ app.get('/commits/users/rickshaw', function(req, res) {
 	});
 });
 
-app.get('/commits/deletions/rickshaw', function(req, res) {
+app.get('/api/:hlid/deletes', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
@@ -193,7 +200,7 @@ app.get('/commits/deletions/rickshaw', function(req, res) {
 		var users = {}; // set of users
 		var commits = []; // list of users and their commits
 
-		collection.find().sort({time: 1, committer: 1}).each(function(err, commit) {
+		collection.find({hlid: req.params.hlid}).sort({time: 1, committer: 1}).each(function(err, commit) {
 
 			// close database
 			if (commit == null) {
@@ -244,7 +251,7 @@ app.get('/commits/deletions/rickshaw', function(req, res) {
 	});
 });
 
-app.get('/commits/commits/rickshaw', function(req, res) {
+app.get('/api/:hlid/commits', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
@@ -254,7 +261,7 @@ app.get('/commits/commits/rickshaw', function(req, res) {
 		var repos = {}; // set of repos
 		var commits = []; // list of repos and their commits
 
-		collection.find().sort({time: 1, repo: 1}).each(function(err, commit) {
+		collection.find({hlid: req.params.hlid}).sort({time: 1, repo: 1}).each(function(err, commit) {
 
 			// close database
 			if (commit == null) {
@@ -299,63 +306,51 @@ app.get('/commits/commits/rickshaw', function(req, res) {
 	});
 });
 
-var insertCommit = function(data) {
+app.get('/:hlid', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
-		if(err) { return console.warn(err); }
+		if(err) { return console.dir(err); }
 		
-		db.collection("commits", function(err, collection) {
-			
-			collection.ensureIndex('time', function() {
-				// console.log(data);
+		var collection = db.collection('hackathons');
+		collection.findOne({hlid: req.params.hlid}, function(err, hackathon) {
+			console.log(hackathon);
 
-				/* Note the _id has been created */
-				collection.insert(data, {
-					safe : true
-				}, function(err, result) {
-					if (err) console.warn(err.message);
+			if (hackathon) {
+				res.render('index', {
+					hackathon: hackathon,
+					dataUrl: '/api/' + hackathon.hlid + '/repos'
 				});
-				
-				db.close();
-			});
+			}
+
+			db.close();
 		});
 	});
-}
+});
 
-var getCommitDetail = function(owner, repo, sha) {
-	request.get({
-		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits/' + sha,
-		json: true,
-		qs: {access_token: access_token}
-	}, function(err, resp, body) {
-		if (!err && resp.statusCode == 200) {
-			var time = new Date(body.commit.committer.date);
-			var net_lines = body.stats.additions - body.stats.deletions;
+app.get('/:hlid/:type', function(req, res) {
+	/* Connect to the DB and auth */
+	MongoClient.connect(mongourl, function(err, db) {
+		if(err) { return console.dir(err); }
+		
+		var collection = db.collection('hackathons');
+		collection.findOne({hlid: req.params.hlid}, function(err, hackathon) {
+			console.log(hackathon);
 
-			console.log(repo + ',' + body.commit.committer.name + ',' + net_lines + ',' + time.toISOString());
+			if (hackathon) {
+				res.render('index', {
+					hackathon: hackathon,
+					dataUrl: '/api/' + hackathon.hlid + '/' + req.params.type
+				});
+			}
 
-			insertCommit({
-				time: time,
-				repo: repo,
-				owner: owner,
-				name: body.commit.committer.name,
-				committer: body.committer.login,
-				username: body.author.login,
-				additions: body.stats.additions,
-				deletions: body.stats.deletions,
-				message: body.commit.message,
-				sha: sha
-			});
-
-		} else if (err) {
-			console.error(err.message);
-		} else {
-			console.error('Error getting commit from ' + owner + '/' + repo + ': ' + resp.statusCode);
-		}
+			db.close();
+		});
 	});
-}
+});
 
-var checkCommit = function(owner, repo, commit) {
+/* github update */
+
+var checkCommit = function(hlid, owner, repo, commit, end) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
@@ -365,7 +360,7 @@ var checkCommit = function(owner, repo, commit) {
 			sha: commit.sha
 		}, function(err, single) {
 			if (!single) {
-				getCommitDetail(owner, repo, commit.sha);
+				scrape.storeCommit(hlid, owner, repo, commit.sha, end);
 			}
 
 			db.close();
@@ -373,7 +368,7 @@ var checkCommit = function(owner, repo, commit) {
 	});
 }
 
-var getActivity = function(owner, repo) {
+var getActivity = function(hlid, owner, repo, start, end) {
 	request.get({
 		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits?per_page=100',
 		json: true,
@@ -386,7 +381,7 @@ var getActivity = function(owner, repo) {
 				var time = new Date(commit.commit.committer.date);
 
 				if (time > start && time <= end) {
-					checkCommit(owner, repo, commit);
+					checkCommit(hlid, owner, repo, commit, end);
 				}
 			}
 		} else if (err) {
@@ -401,15 +396,19 @@ var update = function() {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
+
+		var now = new Date();
 		
 		var collection = db.collection('commits');
-		collection.distinct('repo', function(err, repos) {
+
+		collection.distinct('repo', {end: {$gte: now}}, function(err, repos) {
 
 			for (var r in repos) {
 				var repo = repos[r];
 
-				collection.findOne({'repo': repo}, function(err, rep) {
-					getActivity(rep.owner, rep.repo);
+				collection.findOne({'repo': repo}, function(err, commit) {
+					// only add newer commits
+					getActivity(commit.hlid, commit.owner, commit.repo, commit.time, commit.end);
 				});
 			}
 
@@ -419,17 +418,19 @@ var update = function() {
 	});
 }
 
+/* first time setup */
+
 if (process.env.NODE_ENV == 'production') {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.warn(err); }
 		
-		db.collection("commits", function(err, collection) {
+		db.collection('commits', function(err, collection) {
 			
 			collection.remove(function() {
 				db.close();
 
-				scrape();
+				scrape.scrapeUrl('http://www.hackerleague.org/hackathons/fall-2013-hackny-student-hackathon/participations');
 			});
 		});
 	});

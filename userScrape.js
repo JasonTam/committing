@@ -5,14 +5,12 @@ var cheerio = require('cheerio');
 var MongoClient = require('mongodb').MongoClient;
 
 var hlBaseUrl = 'http://www.hackerleague.org';
-var partsUrl = hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon/participations';
+var participationUrl = '/participations';
+var partsUrl = hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon' + participationUrl;
 var ghBaseUrl = 'http://www.github.com/'; // needs the slash
 
-var start = new Date('2013-09-28T18:00Z');
-var end = new Date('2013-09-29T16:00Z');
-
 /* GITHUB */
-var access_token = "bb0e5ae2d93b466b4c126d925ab08c8b4cb3cea4";
+var access_token = 'bb0e5ae2d93b466b4c126d925ab08c8b4cb3cea4';
 
 /* MONGODB */
 var mongo;
@@ -31,7 +29,7 @@ var generate_mongo_url = function(obj) {
 	
 	if (obj.username && obj.password) {
 		return 'mongodb://' + obj.username + ':' + obj.password + '@'
-				+ obj.hostname + ':' + obj.port + '/' + obj.db;
+		+ obj.hostname + ':' + obj.port + '/' + obj.db;
 	} else {
 		return 'mongodb://' + obj.hostname + ':' + obj.port + '/' + obj.db;
 	}
@@ -55,15 +53,42 @@ var getGithubUser = function(url) {
 		return url.substring(slash + 1);
 	}
 
-	return "";
+	return '';
 };
+
+var insertHackathon = function(hlid, name, start, end, url) {
+	/* Connect to the DB and auth */
+	MongoClient.connect(mongourl, function(err, db) {
+		if(err) { return console.warn(err); }
+		
+		db.collection('hackathons', function(err, collection) {
+			
+			collection.ensureIndex('hackathon', function() {
+				/* Note the _id has been created */
+				collection.insert({
+					hlid: hlid,
+					name: name,
+					start: start,
+					end: end,
+					url: url
+				}, {
+					safe : true
+				}, function(err, result) {
+					if (err) console.warn(err.message);
+				});
+				
+				db.close();
+			});
+		});
+	});
+}
 
 var insertCommit = function(data) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.warn(err); }
 		
-		db.collection("commits", function(err, collection) {
+		db.collection('commits', function(err, collection) {
 			
 			collection.ensureIndex('time', function() {
 				// console.log(data);
@@ -81,7 +106,7 @@ var insertCommit = function(data) {
 	});
 }
 
-var getCommitDetail = function(owner, repo, sha) {
+var getCommitDetail = function(hlid, owner, repo, sha, end) {
 	request.get({
 		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits/' + sha,
 		json: true,
@@ -103,7 +128,9 @@ var getCommitDetail = function(owner, repo, sha) {
 				additions: body.stats.additions,
 				deletions: body.stats.deletions,
 				message: body.commit.message,
-				sha: sha
+				sha: sha,
+				end: end,
+				hlid: hlid
 			});
 
 		} else if (err) {
@@ -114,9 +141,7 @@ var getCommitDetail = function(owner, repo, sha) {
 	});
 }
 
-var getActivity = function(owner, repo) {
-	// console.log(repo);
-
+var getActivity = function(hlid, start, end, owner, repo) {
 	request.get({
 		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits?per_page=100',
 		json: true,
@@ -129,7 +154,7 @@ var getActivity = function(owner, repo) {
 				var time = new Date(commit.commit.committer.date);
 
 				if (time > start && time <= end) {
-					getCommitDetail(owner, repo, commit.sha);
+					getCommitDetail(hlid, owner, repo, commit.sha, end);
 				}
 			}
 		} else if (err) {
@@ -140,7 +165,7 @@ var getActivity = function(owner, repo) {
 	});
 };
 
-var getRepos = function(user) {
+var getRepos = function(hlid, start, end, user) {
 	var uri = 'https://api.github.com/users/' + user + '/repos?sort=pushed';
 
 	request.get({
@@ -167,7 +192,7 @@ var getRepos = function(user) {
 			}
 
 			if (repo_hack) {
-				getActivity(repo_hack.owner.login, repo_hack.name);
+				getActivity(hlid, start, end, repo_hack.owner.login, repo_hack.name);
 			} else {
 				console.log(user + ' has ' + body.length + ' repos but none are recent.');
 			}
@@ -179,18 +204,7 @@ var getRepos = function(user) {
 	});
 };
 
-var crawlRepos = function(gitUrl){
-	request(gitUrl,function(err,resp,body){
-		var $ = cheerio.load(body);
-		var repoCLink = $('.simple-conversation-list>li .title');
-		var repoLink=$(repoCLink).attr('href')
-		console.log(repoLink);
-	})
-};
-
-
-
-var scrapeUser = function(githubList, userPageUrl) {
+var scrapeUser = function(hlid, start, end, githubList, userPageUrl) {
 
 	request(userPageUrl, function(err, resp, body){
 		if (!err && resp.statusCode == 200) {
@@ -201,7 +215,7 @@ var scrapeUser = function(githubList, userPageUrl) {
 
 				// grab git username
 				var gitUrl = $(gitLink).attr('href');
-				var gitUrlPhrases = gitUrl.split("/");
+				var gitUrlPhrases = gitUrl.split('/');
 				gitUrl = ghBaseUrl + gitUrlPhrases[gitUrlPhrases.length - 1]
 
 				var ghUser = getGithubUser(gitUrl);
@@ -209,7 +223,7 @@ var scrapeUser = function(githubList, userPageUrl) {
 				if (gitUrl != ghBaseUrl && githubList.indexOf(ghUser) < 0) {
 					githubList.push(ghUser);
 					// crawlRepos(gitUrl)
-					getRepos(ghUser);
+					getRepos(hlid, start, end, ghUser);
 				}
 			});
 		} else if (err) {
@@ -221,11 +235,28 @@ var scrapeUser = function(githubList, userPageUrl) {
 
 };
 
-var scrape = function() {
-	request(partsUrl, function(err, resp, body) {
+var scrape = function(url) {
+	request(url, function(err, resp, body) {
 		var $ = cheerio.load(body);
 		var userList = [];
 		var githubList = [];
+
+		// get url
+		var url = $('meta[property="og:url"]').attr('content');
+
+		// get hackathon dates
+		var dates = $('#hackathon_header span.hackathon_utc.hackathon_date');
+
+		var start = new Date(parseInt(dates.attr('data-start'), 10) * 1000);
+		var end = new Date(parseInt(dates.attr('data-end'), 10) * 1000);
+
+		// get name
+		var name = $('#hackathon_header h1.inline').text().trim();
+
+		// get id
+		var hlid = $('#main > div:first-child').attr('id');		
+
+		insertHackathon(hlid, name, start, end, url);
 
 		// User Page Links
 		var userLinks = $('div#participants .user > .details > a.username');
@@ -237,20 +268,19 @@ var scrape = function() {
 
 			var userPageUrl = hlBaseUrl + $(userLink).attr('href');
 
-			// if (userPageUrl != 'http://www.hackerleague.org/users/jtam' &&
-			// 	userPageUrl != 'http://www.hackerleague.org/users/csherland')
-			// 	return;
-
 			if (userList.indexOf(userPageUrl) < 0) {
 				userList.push(userPageUrl);
 				// console.log(userPageUrl);
-				scrapeUser(githubList, userPageUrl)
+				scrapeUser(hlid, start, end, githubList, userPageUrl)
 			}
 		});
 
 	});
 };
 
-scrape();
+// scrape(partsUrl);
+// scrape(hlBaseUrl + '/hackathons/spring-2013-hackny-student-hackathon' + participationUrl);
+// scrape(hlBaseUrl + '/hackathons/techcrunch-disrupt-sf-2013' + participationUrl);
 
-module.exports = scrape;
+module.exports.scrapeUrl = scrape;
+module.exports.storeCommit = getCommitDetail;

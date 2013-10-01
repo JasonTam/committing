@@ -12,6 +12,8 @@ graph = new Rickshaw.Graph.Ajax( {
 	stroke: true,
 	dataURL: dataURL,
 	onData: function(data) { 
+		var date = new Date();
+
 		for (var d in data) {
 			data[d].color = palette.color();
 		}
@@ -19,8 +21,14 @@ graph = new Rickshaw.Graph.Ajax( {
 		return data;
 	},
 	onComplete: function(transport) {
+		var timeFixture = new Rickshaw.Fixtures.Time();
+		timeFixture.formatTime = function(d) {
+			return d3.time.format('%I:%M %p')(d);
+		};
+
 		var x_axis = new Rickshaw.Graph.Axis.Time({
-			graph: transport.graph
+			graph: transport.graph,
+			timeFixture: timeFixture
 		});
 		x_axis.graph.update();
 
@@ -101,7 +109,12 @@ graph = new Rickshaw.Graph.Ajax( {
 			}
 		});
 
-		var hover = new Hover( { graph: transport.graph } ); 
+		var hover = new Hover( {
+		 	xFormatter: function(x) {
+				return d3.time.format('%a %H:%M:%S')(new Date(x * 1000));
+			}, 
+			graph: transport.graph
+		}); 
 
 		$('.label').each(function(i, label) {
 			$(this).html($('<a>').attr('href', 'http://github.com/' + $(this).text()).text($(this).text()));

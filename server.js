@@ -44,7 +44,7 @@ var mongo = {
 };
 
 var mongourl = generate_mongo_url(mongo);
-console.log(mongourl);
+
 app.get('/commits', function(req, res) {
 	var repo = req.query['repo'] ? req.query['repo'] : 'committing';
 	
@@ -339,7 +339,7 @@ var getCommitDetail = function(owner, repo, sha) {
 				repo: repo,
 				owner: owner,
 				name: body.commit.committer.name,
-				committer: body.commit.committer.login,
+				committer: body.committer.login,
 				username: body.author.login,
 				additions: body.stats.additions,
 				deletions: body.stats.deletions,
@@ -434,4 +434,5 @@ if (process.env.NODE_ENV == 'production') {
 		});
 	});
 }
+
 setInterval(update, 1000 * 60 * 5);	

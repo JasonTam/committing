@@ -26,7 +26,6 @@ var generate_mongo_url = function(obj) {
 
 	// If on NodeJitsu Server
 	if (process.env.NODE_ENV=='production') {
-		console.log("inside");
 		return 'mongodb://nodejitsu:dffd4e320b733a127ea2e371f7c4f926@paulo.mongohq.com:10060/nodejitsudb2293466096';
 	}
 	
@@ -99,8 +98,8 @@ var getCommitDetail = function(owner, repo, sha) {
 				repo: repo,
 				owner: owner,
 				name: body.commit.committer.name,
-				committer: body.commit.committer.login,
-				username: body.author.login,
+				committer: body.committer ? body.committer.login : undefined,
+				username: body.author ? body.author.login : undefined,
 				additions: body.stats.additions,
 				deletions: body.stats.deletions,
 				message: body.commit.message,
@@ -252,5 +251,6 @@ var scrape = function() {
 	});
 };
 
-module.exports = scrape;
+scrape();
 
+module.exports = scrape;

@@ -34,6 +34,11 @@ html(lang='en')
 					br
 					input#scatterplot(type='radio', name='render', value='scatterplot')
 					label.stack(for='stack') scatterplot
-		script.
-			var dataURL = '/api/#{hackathon.hlid}/#{type}/#{category}';
+		
+		if name
+			script.
+				var dataURL = '/api/#{hackathon.hlid}/#{type}/#{category}/#{name}';
+		else
+			script.
+				var dataURL = '/api/#{hackathon.hlid}/#{type}/#{category}';
 		script(src='/js/chart.js').

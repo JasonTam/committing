@@ -121,6 +121,18 @@ var getType = {
 	}
 }
 
+var massageCategory = function(category) {
+	if (category[category.length - 1] == 's') {
+		category = category.substring(0, category.length - 1);
+	}
+
+	if (category == 'user') {
+		category = 'committer';
+	}
+
+	return category;
+};
+
 var plot = function(hlid, type, category, res, find) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
@@ -131,15 +143,10 @@ var plot = function(hlid, type, category, res, find) {
 		var categories = {};
 		var commits = []; // list of categories and their commits
 
-		if (category[category.length - 1] == 's') {
-			category = category.substring(0, category.length - 1);
-		}
+		var sort = {time: 1};
+		sort[category] = 1;
 
-		if (category == 'user') {
-			category = 'committer';
-		}
-
-		collection.find(find).sort({time: 1, category: 1}).each(function(err, commit) {
+		collection.find(find).sort(sort).each(function(err, commit) {
 
 			// close database
 			if (commit == null) {
@@ -150,7 +157,7 @@ var plot = function(hlid, type, category, res, find) {
 			}
 
 			var prev;
-			if (categories[commit[category]] && commits[categories[commit[category]]].data.length > 0) {
+			if (categories[commit[category]] !== undefined && commits[categories[commit[category]]].data.length > 0) {
 				prev = commits[categories[commit[category]]].data[commits[categories[commit[category]]].data.length - 1].y;
 			}
 
@@ -176,18 +183,20 @@ var plot = function(hlid, type, category, res, find) {
 };
 
 app.get('/api/:hlid/:type/:category', function(req, res) {
-	plot(req.params.hlid, req.params.type, req.params.category, res, {
+	var category = massageCategory(req.params.category);
+
+	plot(req.params.hlid, req.params.type, category, res, {
 		hlid: req.params.hlid
 	});
 });
 
 app.get('/api/:hlid/:type/:category/:name', function(req, res) {
-	var category = req.params.category;
+	var find = { hlid: req.params.hlid };
+	var category = massageCategory(req.params.category);
 
-	plot(req.params.hlid, req.params.type, category, res, {
-		hlid: req.params.hlid,
-		category: req.params.name
-	});
+	find[category] = req.params.name;
+
+	plot(req.params.hlid, req.params.type, category, res, find);
 });
 
 app.get('/:hlid', function(req, res) {
@@ -226,6 +235,29 @@ app.get('/:hlid/:type/:category', function(req, res) {
 					hackathon: hackathon,
 					type: req.params.type,
 					category: req.params.category
+				});
+			} else {
+				res.send(404);
+			}
+
+			db.close();
+		});
+	});
+});
+
+app.get('/:hlid/:type/:category/:name', function(req, res) {
+	/* Connect to the DB and auth */
+	MongoClient.connect(mongourl, function(err, db) {
+		if(err) { return console.dir(err); }
+		
+		var collection = db.collection('hackathons');
+		collection.findOne({hlid: req.params.hlid}, function(err, hackathon) {
+			if (hackathon) {
+				res.render('hackathon', {
+					hackathon: hackathon,
+					type: req.params.type,
+					category: req.params.category,
+					name: req.params.name
 				});
 			} else {
 				res.send(404);

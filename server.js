@@ -10,6 +10,10 @@ app.listen(process.env.PORT || 8080);
 
 var access_token = 'bb0e5ae2d93b466b4c126d925ab08c8b4cb3cea4';
 
+var hlBaseUrl = 'http://www.hackerleague.org';
+var participationUrl = '/participations';
+var hackathonUrl = '/hackathons';
+
 var mongo;
 var mongourl;
 
@@ -65,6 +69,10 @@ app.get('/', function(req, res) {
 		});
 	});
 });
+
+var buildHLUrl = function(hackathon) {
+	return hlBaseUrl + '/hackathons/' + hackathon + participationUrl
+}
 
 var getType = {
 	lines: function(commit, prev) {
@@ -184,6 +192,8 @@ app.get('/:hlid', function(req, res) {
 				});
 			} else {
 				res.send(404);
+
+				scrape.scrapeUrl(buildHLUrl(res.params.hlid));
 			}
 
 			db.close();
@@ -282,36 +292,6 @@ var update = function() {
 
 			// probably should close.
 			// db.close();
-		});
-	});
-}
-
-/* first time setup */
-
-if (process.env.NODE_ENV == 'production') {
-	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
-		if(err) { return console.warn(err); }
-		
-		db.collection('hackathons', function(err, collection) {
-			
-			collection.remove(function() {
-				
-				db.collection('commits', function(err2, collection2) {
-					collection2.remove(function() {
-						db.close();
-
-						var hlBaseUrl = 'http://www.hackerleague.org';
-						var participationUrl = '/participations';
-
-						// scrape.scrapeUrl(hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon' + participationUrl);
-						// scrape.scrapeUrl(hlBaseUrl + '/hackathons/spring-2013-hackny-student-hackathon' + participationUrl);
-						// scrape.scrapeUrl(hlBaseUrl + '/hackathons/techcrunch-disrupt-sf-2013' + participationUrl);
-						scrape.scrapeUrl(hlBaseUrl + '/hackathons/spring-2012-hackny-student-hackathon' + participationUrl);
-						scrape.scrapeUrl(hlBaseUrl + '/hackathons/fall-2012-hackny-student-hackathon' + participationUrl);
-					});
-				});
-			});
 		});
 	});
 }

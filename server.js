@@ -121,7 +121,7 @@ var getType = {
 	}
 }
 
-app.get('/api/:hlid/:type/:category', function(req, res) {
+var plot = function(hlid, type, category, res, find) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
@@ -131,8 +131,6 @@ app.get('/api/:hlid/:type/:category', function(req, res) {
 		var categories = {};
 		var commits = []; // list of categories and their commits
 
-		var category = req.params.category;
-
 		if (category[category.length - 1] == 's') {
 			category = category.substring(0, category.length - 1);
 		}
@@ -141,7 +139,7 @@ app.get('/api/:hlid/:type/:category', function(req, res) {
 			category = 'committer';
 		}
 
-		collection.find({hlid: req.params.hlid}).sort({time: 1, category: 1}).each(function(err, commit) {
+		collection.find(find).sort({time: 1, category: 1}).each(function(err, commit) {
 
 			// close database
 			if (commit == null) {
@@ -157,7 +155,7 @@ app.get('/api/:hlid/:type/:category', function(req, res) {
 			}
 
 			// net lines
-			var next = getType[req.params.type](commit, prev)
+			var next = getType[type](commit, prev);
 
 			// add this commit to the category
 			if (next) {
@@ -174,6 +172,21 @@ app.get('/api/:hlid/:type/:category', function(req, res) {
 				commits[categories[commit[category]]].data.push(next);
 			}
 		});
+	});
+};
+
+app.get('/api/:hlid/:type/:category', function(req, res) {
+	plot(req.params.hlid, req.params.type, req.params.category, res, {
+		hlid: req.params.hlid
+	});
+});
+
+app.get('/api/:hlid/:type/:category/:name', function(req, res) {
+	var category = req.params.category;
+
+	plot(req.params.hlid, req.params.type, category, res, {
+		hlid: req.params.hlid,
+		category: req.params.name
 	});
 });
 

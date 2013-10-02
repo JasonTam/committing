@@ -23,7 +23,7 @@ var generate_mongo_url = function(obj) {
 	obj.db = (obj.db || 'committing');
 
 	// If on NodeJitsu Server
-	if (process.env.NODE_ENV=='production') {
+	if (process.env.NODE_ENV == 'production') {
 		return 'mongodb://nodejitsu:dffd4e320b733a127ea2e371f7c4f926@paulo.mongohq.com:10060/nodejitsudb2293466096';
 	}
 	
@@ -193,7 +193,7 @@ app.get('/:hlid', function(req, res) {
 			} else {
 				res.send(404);
 
-				scrape.scrapeUrl(buildHLUrl(res.params.hlid));
+				scrape.scrapeUrl(buildHLUrl(req.params.hlid));
 			}
 
 			db.close();

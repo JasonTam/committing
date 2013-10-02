@@ -151,18 +151,8 @@ app.get('/api/:hlid/:type/:category', function(req, res) {
 				return;
 			}
 
-			// this is a new category!
-			if (categories[commit[category]] === undefined) {
-				categories[commit[category]] = commits.length;
-
-				commits.push({
-					name: commit[category],
-					data: []
-				})
-			}
-
 			var prev;
-			if (commits[categories[commit[category]]].data.length > 0) {
+			if (categories[commit[category]] && commits[categories[commit[category]]].data.length > 0) {
 				prev = commits[categories[commit[category]]].data[commits[categories[commit[category]]].data.length - 1].y;
 			}
 
@@ -171,6 +161,16 @@ app.get('/api/:hlid/:type/:category', function(req, res) {
 
 			// add this commit to the category
 			if (next) {
+				// this is a new category!
+				if (categories[commit[category]] === undefined) {
+					categories[commit[category]] = commits.length;
+
+					commits.push({
+						name: commit[category],
+						data: []
+					});
+				}
+
 				commits[categories[commit[category]]].data.push(next);
 			}
 		});

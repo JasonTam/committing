@@ -187,7 +187,7 @@ app.get('/:hlid', function(req, res) {
 			if (hackathon) {
 				res.render('hackathon', {
 					hackathon: hackathon,
-					type: 'linesf',
+					type: 'lines',
 					category: 'repos',
 				});
 			} else {

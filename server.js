@@ -66,17 +66,74 @@ app.get('/', function(req, res) {
 	});
 });
 
-app.get('/api/:hlid/repos', function(req, res) {
+var getType = {
+	lines: function(commit, prev) {
+		prev = (prev === undefined) ? 0 : prev;
+
+		var net = commit.additions - commit.deletions;
+
+		if (Math.abs(net) >= 1000) {
+			return;
+		}
+
+		return {
+					x: commit.time.getTime() / 1000,
+					y: prev + net,
+					additions: commit.additions,
+					deletions: commit.deletions,
+					committer: commit.name,
+					message: commit.message
+				};
+	},
+	files: function(commit, prev) {
+		prev = (prev === undefined) ? 0 : prev;
+
+		var net = commit.file_additions - commit.file_deletions;
+
+		return {
+					x: commit.time.getTime() / 1000,
+					y: prev + net,
+					additions: commit.file_additions,
+					deletions: commit.file_deletions,
+					committer: commit.name,
+					message: commit.message
+				};
+	},
+	commits: function(commit, prev) {
+		prev = (prev === undefined) ? 0 : prev;
+
+		return {
+					x: commit.time.getTime() / 1000,
+					y: prev + 1,
+					additions: commit.additions,
+					deletions: commit.deletions,
+					committer: commit.name,
+					message: commit.message
+				};
+	}
+}
+
+app.get('/api/:hlid/:type/:category', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
 		
 		var collection = db.collection('commits');
 
-		var repos = {}; // set of repos
-		var commits = []; // list of repos and their commits
+		var categories = {};
+		var commits = []; // list of categories and their commits
 
-		collection.find({hlid: req.params.hlid}).sort({time: 1, repo: 1}).each(function(err, commit) {
+		var category = req.params.category;
+
+		if (category[category.length - 1] == 's') {
+			category = category.substring(0, category.length - 1);
+		}
+
+		if (category == 'user') {
+			category = 'committer';
+		}
+
+		collection.find({hlid: req.params.hlid}).sort({time: 1, category: 1}).each(function(err, commit) {
 
 			// close database
 			if (commit == null) {
@@ -86,219 +143,27 @@ app.get('/api/:hlid/repos', function(req, res) {
 				return;
 			}
 
-			// net lines
-			var net = commit.additions - commit.deletions;
-
-			// add this commit to the repo
-			if (Math.abs(net) < 1000) {
-				// this is a new repo!
-				if (repos[commit.repo] === undefined) {
-					repos[commit.repo] = commits.length;
-
-					commits.push({
-						name: commit.owner + '/' + commit.repo,
-						data: []
-					})
-				}
-
-				if (commits[repos[commit.repo]].data.length > 0) {
-					var prev_net = commits[repos[commit.repo]].data[commits[repos[commit.repo]].data.length - 1].y;
-
-					commits[repos[commit.repo]].data.push({
-						x: commit.time.getTime() / 1000,
-						y: prev_net + net,
-						additions: commit.additions,
-						deletions: commit.deletions,
-						committer: commit.name,
-						message: commit.message
-					});
-				} else {
-					commits[repos[commit.repo]].data.push({
-						x: commit.time.getTime() / 1000,
-						y: net,
-						additions: commit.additions,
-						deletions: commit.deletions,
-						committer: commit.name,
-						message: commit.message
-					});
-				}
-			}
-		});
-	});
-});
-
-app.get('/api/:hlid/users', function(req, res) {
-	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
-		if(err) { return console.dir(err); }
-		
-		var collection = db.collection('commits');
-
-		var users = {}; // set of users
-		var commits = []; // list of users and their commits
-
-		collection.find({hlid: req.params.hlid}).sort({time: 1, committer: 1}).each(function(err, commit) {
-
-			// close database
-			if (commit == null) {
-				db.close();
-				res.send(commits);
-
-				return;
-			}
-
-			// net lines
-			var net = commit.additions - commit.deletions;
-
-			// add this commit to the repo
-			if (Math.abs(net) < 1000) {
-				// this is a new repo!
-				if (users[commit.committer] === undefined) {
-					users[commit.committer] = commits.length;
-
-					commits.push({
-						name: commit.committer,
-						data: []
-					})
-				}
-
-				if (commits[users[commit.committer]].data.length > 0) {
-					var prev_net = commits[users[commit.committer]].data[commits[users[commit.committer]].data.length - 1].y;
-
-					commits[users[commit.committer]].data.push({
-						x: commit.time.getTime() / 1000,
-						y: prev_net + net,
-						additions: commit.additions,
-						deletions: commit.deletions,
-						committer: commit.name,
-						message: commit.message
-					});
-				} else {
-					commits[users[commit.committer]].data.push({
-						x: commit.time.getTime() / 1000,
-						y: net,
-						additions: commit.additions,
-						deletions: commit.deletions,
-						committer: commit.name,
-						message: commit.message
-					});
-				}
-			}
-		});
-	});
-});
-
-app.get('/api/:hlid/files', function(req, res) {
-	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
-		if(err) { return console.dir(err); }
-		
-		var collection = db.collection('commits');
-
-		var repos = {}; // set of repos
-		var commits = []; // list of repos and their commits
-
-		collection.find({hlid: req.params.hlid}).sort({time: 1, repo: 1}).each(function(err, commit) {
-
-			// close database
-			if (commit == null) {
-				db.close();
-				res.send(commits);
-
-				return;
-			}
-
-			// net lines
-			var net = commit.file_additions - commit.file_deletions;
-
-			// add this commit to the repo
-			if (Math.abs(net) < 1000) {
-				// this is a new repo!
-				if (repos[commit.repo] === undefined) {
-					repos[commit.repo] = commits.length;
-
-					commits.push({
-						name: commit.owner + '/' + commit.repo,
-						data: []
-					})
-				}
-
-				if (commits[repos[commit.repo]].data.length > 0) {
-					var prev = commits[repos[commit.repo]].data[commits[repos[commit.repo]].data.length - 1].y;
-
-					commits[repos[commit.repo]].data.push({
-						x: commit.time.getTime() / 1000,
-						y: prev + net,
-						additions: commit.file_additions,
-						deletions: commit.file_deletions,
-						committer: commit.name,
-						message: commit.message
-					});
-				} else {
-					commits[repos[commit.repo]].data.push({
-						x: commit.time.getTime() / 1000,
-						y: net,
-						additions: commit.file_additions,
-						deletions: commit.file_deletions,
-						committer: commit.name,
-						message: commit.message
-					});
-				}
-			}
-		});
-	});
-});
-
-app.get('/api/:hlid/commits', function(req, res) {
-	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
-		if(err) { return console.dir(err); }
-		
-		var collection = db.collection('commits');
-
-		var repos = {}; // set of repos
-		var commits = []; // list of repos and their commits
-
-		collection.find({hlid: req.params.hlid}).sort({time: 1, repo: 1}).each(function(err, commit) {
-
-			// close database
-			if (commit == null) {
-				db.close();
-				res.send(commits);
-
-				return;
-			}
-			
-			// this is a new repo!
-			if (repos[commit.repo] === undefined) {
-				repos[commit.repo] = commits.length;
+			// this is a new category!
+			if (categories[commit[category]] === undefined) {
+				categories[commit[category]] = commits.length;
 
 				commits.push({
-					name: commit.owner + '/' + commit.repo,
+					name: commit[category],
 					data: []
 				})
 			}
 
-			if (commits[repos[commit.repo]].data.length > 0) {
-				var prev_net = commits[repos[commit.repo]].data[commits[repos[commit.repo]].data.length - 1].y;
+			var prev;
+			if (commits[categories[commit[category]]].data.length > 0) {
+				prev = commits[categories[commit[category]]].data[commits[categories[commit[category]]].data.length - 1].y;
+			}
 
-				commits[repos[commit.repo]].data.push({
-					x: commit.time.getTime() / 1000,
-					y: prev_net + 1,
-					additions: commit.additions,
-					deletions: commit.deletions,
-					committer: commit.name,
-					message: commit.message
-				});
-			} else {
-				commits[repos[commit.repo]].data.push({
-					x: commit.time.getTime() / 1000,
-					y: 1,
-					additions: commit.additions,
-					deletions: commit.deletions,
-					committer: commit.name,
-					message: commit.message
-				});
+			// net lines
+			var next = getType[req.params.type](commit, prev)
+
+			// add this commit to the category
+			if (next) {
+				commits[categories[commit[category]]].data.push(next);
 			}
 		});
 	});
@@ -314,7 +179,8 @@ app.get('/:hlid', function(req, res) {
 			if (hackathon) {
 				res.render('hackathon', {
 					hackathon: hackathon,
-					disp: 'repos'
+					type: 'linesf',
+					category: 'repos',
 				});
 			} else {
 				res.send(404);
@@ -325,7 +191,7 @@ app.get('/:hlid', function(req, res) {
 	});
 });
 
-app.get('/:hlid/:disp', function(req, res) {
+app.get('/:hlid/:type/:category', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
@@ -335,7 +201,8 @@ app.get('/:hlid/:disp', function(req, res) {
 			if (hackathon) {
 				res.render('hackathon', {
 					hackathon: hackathon,
-					disp: req.params.disp
+					type: req.params.type,
+					category: req.params.category
 				});
 			} else {
 				res.send(404);
@@ -437,11 +304,11 @@ if (process.env.NODE_ENV == 'production') {
 						var hlBaseUrl = 'http://www.hackerleague.org';
 						var participationUrl = '/participations';
 
-						scrape.scrapeUrl(hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon' + participationUrl);
-						scrape.scrapeUrl(hlBaseUrl + '/hackathons/spring-2013-hackny-student-hackathon' + participationUrl);
-						scrape.scrapeUrl(hlBaseUrl + '/hackathons/techcrunch-disrupt-sf-2013' + participationUrl);
-						// scrape.scrapeUrl(hlBaseUrl + '/hackathons/spring-2012-hackny-student-hackathon' + participationUrl);
-						// scrape.scrapeUrl(hlBaseUrl + '/hackathons/fall-2012-hackny-student-hackathon' + participationUrl);
+						// scrape.scrapeUrl(hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon' + participationUrl);
+						// scrape.scrapeUrl(hlBaseUrl + '/hackathons/spring-2013-hackny-student-hackathon' + participationUrl);
+						// scrape.scrapeUrl(hlBaseUrl + '/hackathons/techcrunch-disrupt-sf-2013' + participationUrl);
+						scrape.scrapeUrl(hlBaseUrl + '/hackathons/spring-2012-hackny-student-hackathon' + participationUrl);
+						scrape.scrapeUrl(hlBaseUrl + '/hackathons/fall-2012-hackny-student-hackathon' + participationUrl);
 					});
 				});
 			});

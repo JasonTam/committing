@@ -1,7 +1,7 @@
 !!! 5
 html(lang='en')
 	head
-			title committing/#{hackathon.hlid}/#{disp}
+			title committing/#{hackathon.hlid}/#{type}/#{category}
 			link(href='http://fonts.googleapis.com/css?family=Inconsolata', rel='stylesheet', type='text/css')
 			link(rel='stylesheet', href='/css/rickshaw.min.css')
 			link(rel='stylesheet', href='/css/style.css')
@@ -13,14 +13,16 @@ html(lang='en')
 			header
 				h1 
 					a(href='/') committing
-					/#{disp}
+					/#{type}/#{category}
 				h2
 					a(href='#{hackathon.url}') #{hackathon.name}
 			.nav
-				a(href='/#{hackathon.hlid}') /repos
-				a(href='/#{hackathon.hlid}/users') /users
-				a(href='/#{hackathon.hlid}/commits') /commits
-				a(href='/#{hackathon.hlid}/files') /files
+				a(href='/#{hackathon.hlid}/lines/#{category}') /lines
+				a(href='/#{hackathon.hlid}/commits/#{category}') /commits
+				a(href='/#{hackathon.hlid}/files/#{category}') /files
+			.nav
+				a(href='/#{hackathon.hlid}/#{type}/repos') /repos
+				a(href='/#{hackathon.hlid}/#{type}/users') /users
 			#chart_container
 				#y_axis
 				#chart
@@ -33,5 +35,5 @@ html(lang='en')
 					input#scatterplot(type='radio', name='render', value='scatterplot')
 					label.stack(for='stack') scatterplot
 		script.
-			var dataURL = '/api/#{hackathon.hlid}/#{disp}';
+			var dataURL = '/api/#{hackathon.hlid}/#{type}/#{category}';
 		script(src='/js/chart.js').

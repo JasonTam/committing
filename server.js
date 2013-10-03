@@ -4,16 +4,21 @@ var request = require('request');
 var scrape = require('./userScrape.js');
 var app = express();
 
-app.use(express.static(__dirname + '/public'));
-
-app.listen(process.env.PORT || 8080);
-
-var access_token = 'bb0e5ae2d93b466b4c126d925ab08c8b4cb3cea4';
-
 var hlBaseUrl = 'http://www.hackerleague.org';
 var participationUrl = '/participations';
 var hackathonUrl = '/hackathons';
 
+/* GITHUB */
+var access_token;
+
+if (process.env.NODE_ENV == 'production') {
+	access_token = process.env.GITHUB;
+} else {
+	var secrets = require('./secrets.js');
+	access_token = secrets.github_access_token;
+}
+
+/* MONGO */
 var mongo;
 var mongourl;
 
@@ -23,8 +28,8 @@ var generate_mongo_url = function(obj) {
 	obj.db = (obj.db || 'committing');
 
 	// If on NodeJitsu Server
-	if (process.env.NODE_ENV == 'production') {
-		return 'mongodb://nodejitsu:dffd4e320b733a127ea2e371f7c4f926@paulo.mongohq.com:10060/nodejitsudb2293466096';
+	if (process.env.NODE_ENV == 'production' && process.env.MONGO) {
+		return process.env.MONGO;
 	}
 	
 	if (obj.username && obj.password) {
@@ -45,6 +50,11 @@ var mongo = {
 };
 
 var mongourl = generate_mongo_url(mongo);
+
+/* website */
+app.use(express.static(__dirname + '/public'));
+
+app.listen(process.env.PORT || 8080);
 
 /* pages */
 app.set('views', __dirname + '/views');

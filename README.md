@@ -12,6 +12,13 @@ $ npm update
 
 Setup
 -----
+A github access token is needed to retrieve data from github. Either create an environment variable named `GITHUB` or a file named `secrets.js` with the contents
+```
+module.exports.github_access_token = '<access_token>';
+```
+
+Set up mongodb either by adding a `MONGO` environment variable or editing `server.js` to match your development settings.
+
 After you set up mongodb, run
 ```
 $ node ./server.js

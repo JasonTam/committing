@@ -1,5 +1,3 @@
-USER_LIMIT = -1;
-
 var request = require('request');
 var cheerio = require('cheerio');
 var MongoClient = require('mongodb').MongoClient;
@@ -9,7 +7,14 @@ var participationUrl = '/participations';
 var ghBaseUrl = 'http://www.github.com/'; // needs the slash
 
 /* GITHUB */
-var access_token = 'bb0e5ae2d93b466b4c126d925ab08c8b4cb3cea4';
+var access_token;
+
+if (process.env.NODE_ENV == 'production') {
+	access_token = process.env.GITHUB;
+} else {
+	var secrets = require('./secrets.js');
+	access_token = secrets.github_access_token;
+}
 
 /* MONGODB */
 var mongo;
@@ -22,8 +27,8 @@ var generate_mongo_url = function(obj) {
 	
 
 	// If on NodeJitsu Server
-	if (process.env.NODE_ENV=='production') {
-		return 'mongodb://nodejitsu:dffd4e320b733a127ea2e371f7c4f926@paulo.mongohq.com:10060/nodejitsudb2293466096';
+	if (process.env.NODE_ENV == 'production' && process.env.MONGO) {
+		return process.env.MONGO;
 	}
 	
 	if (obj.username && obj.password) {
@@ -34,6 +39,7 @@ var generate_mongo_url = function(obj) {
 	}
 };
 
+// local database for development
 var mongo = {
 	'hostname' : 'localhost',
 	'port' : 27017,
@@ -317,12 +323,6 @@ var scrape = function(url) {
 		});
 	});
 };
-
-// scrape(hlBaseUrl + '/hackathons/fall-2013-hackny-student-hackathon' + participationUrl);
-// scrape(hlBaseUrl + '/hackathons/spring-2013-hackny-student-hackathon' + participationUrl);
-// scrape(hlBaseUrl + '/hackathons/spring-2012-hackny-student-hackathon' + participationUrl);
-// scrape(hlBaseUrl + '/hackathons/fall-2012-hackny-student-hackathon' + participationUrl);
-// scrape(hlBaseUrl + '/hackathons/techcrunch-disrupt-sf-2013' + participationUrl);
 
 module.exports.scrapeUrl = scrape;
 module.exports.storeCommit = getCommitDetail;

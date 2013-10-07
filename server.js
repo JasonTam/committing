@@ -7,6 +7,7 @@ var app = express();
 var hlBaseUrl = 'http://www.hackerleague.org';
 var participationUrl = '/participations';
 var hackathonUrl = '/hackathons';
+var ghBaseUrl = 'http://www.github.com/';
 
 /* GITHUB */
 var access_token;
@@ -131,6 +132,14 @@ var getType = {
 	}
 }
 
+var getUrl = function(commit, category) {
+	if (category == 'repo') {
+		return commit['committer'] + '/' + commit['repo'];
+	}
+
+	return commit['committer'];
+}
+
 var massageCategory = function(category) {
 	if (category[category.length - 1] == 's') {
 		category = category.substring(0, category.length - 1);
@@ -182,7 +191,8 @@ var plot = function(hlid, type, category, res, find) {
 
 					commits.push({
 						name: commit[category],
-						data: []
+						data: [],
+						url: ghBaseUrl + getUrl(commit, category)
 					});
 				}
 

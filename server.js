@@ -134,7 +134,7 @@ var getType = {
 
 var getUrl = function(commit, category) {
 	if (category == 'repo') {
-		return commit['committer'] + '/' + commit['repo'];
+		return commit['owner'] + '/' + commit['repo'];
 	}
 
 	return commit['committer'];

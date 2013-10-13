@@ -5,7 +5,6 @@ var scrape = require('./userScrape.js');
 var app = express();
 
 var hlBaseUrl = 'http://www.hackerleague.org';
-var participationUrl = '/participations';
 var hackathonUrl = '/hackathons';
 var ghBaseUrl = 'http://www.github.com/';
 
@@ -80,10 +79,6 @@ app.get('/', function(req, res) {
 		});
 	});
 });
-
-var buildHLUrl = function(hackathon) {
-	return hlBaseUrl + '/hackathons/' + hackathon + participationUrl
-}
 
 var getType = {
 	lines: function(commit, prev) {
@@ -244,7 +239,7 @@ app.get('/:hlid', function(req, res) {
 			} else {
 				res.send(404);
 
-				scrape.scrapeUrl(buildHLUrl(req.params.hlid));
+				scrape.scrape(req.params.hlid);
 			}
 
 			db.close();

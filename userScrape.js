@@ -164,9 +164,10 @@ var getActivity = function(hlid, start, end, owner, repo) {
 	request.get({
 		uri: url,
 		json: true,
-		since: start.toISOString(),
-		until: end.toISOString(),
-		qs: {access_token: access_token}
+		qs: {access_token: access_token,
+			since: start.toISOString(),
+			until: end.toISOString()
+		}
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {
 			for (var c in body) {
@@ -273,8 +274,45 @@ var scrapeUser = function(hlid, start, end, githubList, userPageUrl) {
 
 };
 
-var scrape = function(url) {
-	request(url, function(err, resp, body) {
+var searchProject = function(hlid, start, end, title) {
+	var url = 'https://api.github.com/search/repositories';
+
+	request({
+		uri: url,
+		json: true,
+		headers: {
+			'Accept': 'application/vnd.github.preview'
+		},
+		qs: {access_token: access_token,
+			q: title,
+			sort: 'updated',
+			order: 'desc'}
+	}, function(err, resp, body) {
+		if (!err && resp.statusCode == 200) {
+			var repo = body.items[0];
+
+			if (repo) {
+				var pushed_at = new Date(repo.pushed_at);
+				var created_at = new Date(repo.created_at);
+
+				if (created_at >= start && created_at < end && pushed_at >= created_at && repo.size > 0) {
+					getActivity(hlid, start, end, repo.owner.login, repo.name);
+				}
+			} else {
+				console.warn('No repo found for ' + title);
+			}
+		} else if (err) {
+			console.error(err.message);
+		} else {
+			console.error('Error scraping ' + url + ' : ' + resp.statusCode);
+		}
+	});
+}
+
+var scrape = function(hackathon) {
+	var partUrl = hlBaseUrl + '/hackathons/' + hackathon + participationUrl;
+
+	request(partUrl, function(err, resp, body) {
 		var $ = cheerio.load(body);
 		var userList = [];
 		var githubList = [];
@@ -292,7 +330,7 @@ var scrape = function(url) {
 		var name = $('#hackathon_header h1.inline').text().trim();
 
 		if (!name) {
-			console.error('Could not retrieve name for ' + userurl + ' from ' + url);
+			console.error('Could not retrieve name for ' + userurl + ' from ' + partUrl);
 			return;
 		}
 
@@ -300,7 +338,7 @@ var scrape = function(url) {
 		var hlid = $('#main > div:first-child').attr('id');
 
 		if (!hlid) {
-			console.error('Could not retrieve hlid for ' + userurl + ' from ' + url);
+			console.error('Could not retrieve hlid for ' + userurl + ' from ' + partUrl);
 			return;
 		}
 
@@ -318,7 +356,51 @@ var scrape = function(url) {
 			}
 		});
 	});
+
+	var projUrl = hlBaseUrl + '/hackathons/' + hackathon + '/hacks';
+
+	request(projUrl, function(err, resp, body) {
+		var $ = cheerio.load(body);
+		var userList = [];
+		var githubList = [];
+
+		// get url
+		var userurl = $('meta[property="og:url"]').attr('content');
+
+		// get hackathon dates
+		var dates = $('#hackathon_header span.hackathon_utc.hackathon_date');
+
+		var start = new Date(parseInt(dates.attr('data-start'), 10) * 1000);
+		var end = new Date(parseInt(dates.attr('data-end'), 10) * 1000);
+
+		// get name
+		var name = $('#hackathon_header h1.inline').text().trim();
+
+		if (!name) {
+			console.error('Could not retrieve name for ' + userurl + ' from ' + partUrl);
+			return;
+		}
+
+		// get id
+		var hlid = $('#main > div:first-child').attr('id');
+
+		if (!hlid) {
+			console.error('Could not retrieve hlid for ' + userurl + ' from ' + partUrl);
+			return;
+		}
+
+		// User Page Links
+		var projLinks = $('div#pitch_teams > div.hack h2.inline a.invert');
+
+		$(projLinks).each(function(i, projLink) {
+			var projTitle = $(projLink).text();
+
+			if (projTitle.indexOf(' ') < 0) {
+				searchProject(hlid, start, end, projTitle);
+			}
+		});
+	});
 };
 
-module.exports.scrapeUrl = scrape;
+module.exports.scrape = scrape;
 module.exports.storeCommit = getCommitDetail;

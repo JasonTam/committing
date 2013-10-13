@@ -13,16 +13,26 @@ html(lang='en')
 			header
 				h1 
 					a(href='/') committing
-					/#{type}/#{category}
+					/
+					.vert
+						.current #{type}
+						.other
+							-if (type != 'lines')
+								a(href='/#{hackathon.hlid}/lines/#{category}') lines
+							-if (type != 'commits')
+								a(href='/#{hackathon.hlid}/commits/#{category}') commits
+							-if (type != 'files')
+								a(href='/#{hackathon.hlid}/files/#{category}') files
+					/
+					.vert
+						.current #{category}
+						.other
+							-if (category != 'repos')
+								a(href='/#{hackathon.hlid}/#{type}/repos') repos
+							-if (category != 'users')
+								a(href='/#{hackathon.hlid}/#{type}/users') users
 				h2
 					a(href='#{hackathon.url}') #{hackathon.name}
-			.nav
-				a(href='/#{hackathon.hlid}/lines/#{category}') /lines
-				a(href='/#{hackathon.hlid}/commits/#{category}') /commits
-				a(href='/#{hackathon.hlid}/files/#{category}') /files
-			.nav
-				a(href='/#{hackathon.hlid}/#{type}/repos') /repos
-				a(href='/#{hackathon.hlid}/#{type}/users') /users
 			#chart_container
 				#y_axis
 				#chart

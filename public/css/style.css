@@ -44,21 +44,22 @@ li {
 	list-style-type: none;
 }
 
-.nav {
-	font-family: 'Inconsolata', sans-serif;
-	font-size: 24pt;
-
-	padding-left: 60px;
-	padding-bottom: .5em;
-}
-
-.nav a {
-	padding-right: 60px;
+.vert {
+	display: inline-block;
+	vertical-align: top;
 }
 
 .main {
 	padding-left: 1%;
 	padding-right: 1%;
+}
+
+.main h1 a {
+	vertical-align: top;
+}
+.other > a {
+	display: block;
+	font-size: 30pt;
 }
 
 .label a, .label a:link, .label a:visited {

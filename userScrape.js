@@ -310,10 +310,6 @@ var scrape = function(url) {
 		var userLinks = $('div#participants .user > .details > a.username');
 
 		$(userLinks).each(function(i, userLink) {
-			if (USER_LIMIT >= 0 && i >= USER_LIMIT) {
-				return;
-			}
-
 			var userPageUrl = hlBaseUrl + $(userLink).attr('href');
 
 			if (userList.indexOf(userPageUrl) < 0) {

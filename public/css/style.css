@@ -76,6 +76,18 @@ a:hover {
 	color: black;
 }
 
+.rickshaw_graph .detail {
+	pointer-events: auto;
+}
+
+.rickshaw_graph .detail a, .rickshaw_graph .detail a:link, .rickshaw_graph .detail a:visited {
+	color: lightGray;
+}
+
+.rickshaw_graph .detail a:hover {
+	color: white;
+}
+
 .rickshaw_legend {
 	font-family: 'Inconsolata', sans-serif;
 	font-size: 10pt;

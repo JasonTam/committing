@@ -101,6 +101,9 @@ var getType = {
 					additions: commit.additions,
 					deletions: commit.deletions,
 					committer: commit.name,
+					owner: commit.owner,
+					sha: commit.sha,
+					repo: commit.repo,
 					message: commit.message
 				};
 	},
@@ -115,6 +118,9 @@ var getType = {
 					additions: commit.file_additions,
 					deletions: commit.file_deletions,
 					committer: commit.name,
+					owner: commit.owner,
+					sha: commit.sha,
+					repo: commit.repo,
 					message: commit.message
 				};
 	},
@@ -127,6 +133,9 @@ var getType = {
 					additions: commit.additions,
 					deletions: commit.deletions,
 					committer: commit.name,
+					owner: commit.owner,
+					sha: commit.sha,
+					repo: commit.repo,
 					message: commit.message
 				};
 	}

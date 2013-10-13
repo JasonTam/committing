@@ -280,7 +280,7 @@ var scrape = function(url) {
 		var githubList = [];
 
 		// get url
-		var url = $('meta[property="og:url"]').attr('content');
+		var userurl = $('meta[property="og:url"]').attr('content');
 
 		// get hackathon dates
 		var dates = $('#hackathon_header span.hackathon_utc.hackathon_date');
@@ -292,7 +292,7 @@ var scrape = function(url) {
 		var name = $('#hackathon_header h1.inline').text().trim();
 
 		if (!name) {
-			console.error('Could not retrieve name for ' + url);
+			console.error('Could not retrieve name for ' + userurl + ' from ' + url);
 			return;
 		}
 
@@ -300,11 +300,11 @@ var scrape = function(url) {
 		var hlid = $('#main > div:first-child').attr('id');
 
 		if (!hlid) {
-			console.error('Could not retrieve hlid for ' + url);
+			console.error('Could not retrieve hlid for ' + userurl + ' from ' + url);
 			return;
 		}
 
-		insertHackathon(hlid, name, start, end, url);
+		insertHackathon(hlid, name, start, end, userurl);
 
 		// User Page Links
 		var userLinks = $('div#participants .user > .details > a.username');

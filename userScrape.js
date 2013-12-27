@@ -2,6 +2,8 @@ var request = require('request');
 var cheerio = require('cheerio');
 var MongoClient = require('mongodb').MongoClient;
 
+/* SETTINGS */
+var useragent = 'committing';
 var hlBaseUrl = 'http://www.hackerleague.org';
 var participationUrl = '/participations';
 var ghBaseUrl = 'http://www.github.com/'; // needs the slash
@@ -79,10 +81,12 @@ var insertHackathon = function(hlid, name, start, end, url) {
 				}, {
 					safe : true
 				}, function(err, result) {
-					if (err) console.warn(err.message);
+					if (err) {
+						console.warn(err.message);
+					}
+
+					db.close();
 				});
-				
-				db.close();
 			});
 		});
 	});
@@ -103,9 +107,9 @@ var insertCommit = function(data) {
 					safe : true
 				}, function(err, result) {
 					if (err) console.warn(err.message);
+
+					db.close();
 				});
-				
-				db.close();
 			});
 		});
 	});
@@ -114,6 +118,9 @@ var insertCommit = function(data) {
 var getCommitDetail = function(hlid, owner, repo, sha, end) {
 	request.get({
 		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits/' + sha,
+		headers: {
+			'User-Agent': useragent
+		},
 		json: true,
 		qs: {access_token: access_token}
 	}, function(err, resp, body) {
@@ -163,6 +170,9 @@ var getActivity = function(hlid, start, end, owner, repo) {
 
 	request.get({
 		uri: url,
+		headers: {
+			'User-Agent': useragent
+		},
 		json: true,
 		qs: {access_token: access_token,
 			since: start.toISOString(),
@@ -194,6 +204,9 @@ var getRepos = function(hlid, start, end, user) {
 
 	request.get({
 		uri: uri, 
+		headers: {
+			'User-Agent': useragent
+		},
 		json: true,
 		qs: {access_token: access_token}
 	}, function(err, resp, body) {
@@ -269,6 +282,8 @@ var scrapeUser = function(hlid, start, end, githubList, userPageUrl) {
 			console.error(err.message);
 		} else {
 			console.error('Error scraping ' + userPageUrl + ' : ' + resp.statusCode);
+			console.log(resp.headers);
+			console.log(body);
 		}
 	});
 
@@ -281,7 +296,7 @@ var searchProject = function(hlid, start, end, title) {
 		uri: url,
 		json: true,
 		headers: {
-			'Accept': 'application/vnd.github.preview'
+			'User-Agent': useragent
 		},
 		qs: {access_token: access_token,
 			q: title,
@@ -304,7 +319,9 @@ var searchProject = function(hlid, start, end, title) {
 		} else if (err) {
 			console.error(err.message);
 		} else {
-			console.error('Error scraping ' + url + ' : ' + resp.statusCode);
+			console.error('Error searching ' + url + ' : ' + resp.statusCode);
+			console.log(resp.headers);
+			console.log(body);
 		}
 	});
 }
@@ -392,11 +409,16 @@ var scrape = function(hackathon) {
 		// User Page Links
 		var projLinks = $('div#pitch_teams > div.hack h2.inline a.invert');
 
+		var num = 0;
 		$(projLinks).each(function(i, projLink) {
 			var projTitle = $(projLink).text();
 
 			if (projTitle.indexOf(' ') < 0) {
-				searchProject(hlid, start, end, projTitle);
+				setTimeout(function() {
+					searchProject(hlid, start, end, projTitle);
+				}, num * 5000);
+
+				num += 1;
 			}
 		});
 	});

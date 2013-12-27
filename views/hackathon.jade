@@ -1,4 +1,4 @@
-!!! 5
+doctype html
 html(lang='en')
 	head
 			title committing/#{hackathon.hlid}/#{type}/#{category}
@@ -11,28 +11,28 @@ html(lang='en')
 	body
 		.main
 			header
-				h1 
+				h1
 					a(href='/') committing
-					/
+					span /
 					.vert
 						.current #{type}
 						.other
 							-if (type != 'lines')
-								a(href='/#{hackathon.hlid}/lines/#{category}') lines
+								a(href='/hackathon/#{hackathon.hlid}/lines/#{category}') lines
 							-if (type != 'commits')
-								a(href='/#{hackathon.hlid}/commits/#{category}') commits
+								a(href='/hackathon/#{hackathon.hlid}/commits/#{category}') commits
 							-if (type != 'files')
-								a(href='/#{hackathon.hlid}/files/#{category}') files
-					/
+								a(href='/hackathon/#{hackathon.hlid}/files/#{category}') files
+					span /
 					.vert
 						.current #{category}
 						.other
 							-if (category != 'repos')
-								a(href='/#{hackathon.hlid}/#{type}/repos') repos
+								a(href='/hackathon/#{hackathon.hlid}/#{type}/repos') repos
 							-if (category != 'users')
-								a(href='/#{hackathon.hlid}/#{type}/users') users
+								a(href='/hackathon/#{hackathon.hlid}/#{type}/users') users
 				h2
-					a(href='#{hackathon.url}') #{hackathon.name}
+					a(href='/hackathon/#{hackathon.url}') #{hackathon.name}
 			#chart_container
 				#y_axis
 				#chart

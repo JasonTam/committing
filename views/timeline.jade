@@ -31,26 +31,18 @@ html(lang='en')
 								a(href='/hackathons/#{hackathon.hlid}/#{type}/repos') repos
 							-if (category != 'users')
 								a(href='/hackathons/#{hackathon.hlid}/#{type}/users') users
-							-if (type == 'commits' && category != 'timeline')
-								a(href='/hackathons/#{hackathon.hlid}/#{type}/timeline') timeline
 				h2
 					a(href='#{hackathon.url}') #{hackathon.name}
-			#chart_container
-				#y_axis
-				#chart
-			.sidebar
-				#legend
-				form#render_form.toggler
-					input#line(type='radio', name='render', value='line', checked='checked')
-					label.lines(for='line') line
-					br
-					input#scatterplot(type='radio', name='render', value='scatterplot')
-					label.stack(for='stack') scatterplot
-		
-		if name
-			script.
-				var dataURL = '/api/#{hackathon.hlid}/#{type}/#{category}/#{name}';
-		else
-			script.
-				var dataURL = '/api/#{hackathon.hlid}/#{type}/#{category}';
-		script(src='/js/chart.js').
+			
+			article
+				ul
+					each commit in commits
+						li
+							p
+								span /#{commit.elapsed} min
+								span /
+									a(href='https://github.com/#{commit.owner}/#{commit.repo}') #{commit.repo}
+								span /
+									a(href='https://github.com/#{commit.committer}') #{commit.committer}
+								span /
+									a.message(href='https://github.com/#{commit.owner}/#{commit.repo}/commit/#{commit.sha}') #{commit.message}

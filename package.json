@@ -6,7 +6,8 @@
     "cheerio": "*",
     "express": "*",
     "mongodb": "*",
-    "jade": "*"
+    "jade": "*",
+    "moment": "*"
   },
   "scripts": {
     "start": "./server.js"

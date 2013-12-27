@@ -1,6 +1,7 @@
 var express = require('express');
 var MongoClient = require('mongodb').MongoClient;
 var request = require('request');
+var moment = require('moment');
 var scrape = require('./userScrape.js');
 var app = express();
 
@@ -251,6 +252,29 @@ app.get('/hackathons/:hlid', function(req, res) {
 	});
 });
 
+var timeline = function(db, hackathon,  res) {
+	var collection = db.collection('commits');
+
+	collection.find({hlid: hackathon.hlid}).sort({time: 1}).toArray(function(err, commits) {
+		if (commits) {
+			for (var c in commits) {
+				commits[c].elapsed = moment(commits[c].time).diff(moment(hackathon.start), 'minutes');
+			}
+
+			res.render('timeline', {
+				hackathon: hackathon,
+				commits: commits,
+				type: 'commits',
+				category: 'timeline',
+			});
+		} else {
+			res.send(404);
+		}
+
+		db.close();
+	});
+};
+
 app.get('/hackathons/:hlid/:type/:category', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
@@ -259,16 +283,22 @@ app.get('/hackathons/:hlid/:type/:category', function(req, res) {
 		var collection = db.collection('hackathons');
 		collection.findOne({hlid: req.params.hlid}, function(err, hackathon) {
 			if (hackathon) {
-				res.render('hackathon', {
-					hackathon: hackathon,
-					type: req.params.type,
-					category: req.params.category
-				});
+				if (req.params.category == 'timeline') {
+					timeline(db, hackathon, res);
+				} else {
+					res.render('hackathon', {
+						hackathon: hackathon,
+						type: req.params.type,
+						category: req.params.category
+					});
+
+					db.close();
+				}
 			} else {
 				res.send(404);
-			}
 
-			db.close();
+				db.close();
+			}
 		});
 	});
 });
@@ -368,5 +398,3 @@ var update = function() {
 		});
 	});
 }
-
-setInterval(update, 1000 * 60 * 5);	

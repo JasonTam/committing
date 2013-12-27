@@ -44,6 +44,29 @@ li {
 	list-style-type: none;
 }
 
+li > p {
+	font-family: 'Inconsolata', sans-serif;
+	font-size: 14pt;
+
+	display: inline-block;
+	padding-left: 32px;
+
+	margin-top: .25em;
+	margin-bottom: .25em;
+}
+
+li > p span {
+	color: darkGray;
+}
+
+li > p a.message {
+	color: black;
+}
+
+li > p a.message:hover {
+	color: darkGray;
+}
+
 .vert {
 	display: inline-block;
 	vertical-align: top;

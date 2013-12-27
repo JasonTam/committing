@@ -18,19 +18,19 @@ html(lang='en')
 						.current #{type}
 						.other
 							-if (type != 'lines')
-								a(href='/hackathon/#{hackathon.hlid}/lines/#{category}') lines
+								a(href='/hackathons/#{hackathon.hlid}/lines/#{category}') lines
 							-if (type != 'commits')
-								a(href='/hackathon/#{hackathon.hlid}/commits/#{category}') commits
+								a(href='/hackathons/#{hackathon.hlid}/commits/#{category}') commits
 							-if (type != 'files')
-								a(href='/hackathon/#{hackathon.hlid}/files/#{category}') files
+								a(href='/hackathons/#{hackathon.hlid}/files/#{category}') files
 					span /
 					.vert
 						.current #{category}
 						.other
 							-if (category != 'repos')
-								a(href='/hackathon/#{hackathon.hlid}/#{type}/repos') repos
+								a(href='/hackathons/#{hackathon.hlid}/#{type}/repos') repos
 							-if (category != 'users')
-								a(href='/hackathon/#{hackathon.hlid}/#{type}/users') users
+								a(href='/hackathons/#{hackathon.hlid}/#{type}/users') users
 				h2
 					a(href='#{hackathon.url}') #{hackathon.name}
 			#chart_container

@@ -223,7 +223,11 @@ app.get('/api/:hlid/:type/:category/:name', function(req, res) {
 	plot(req.params.hlid, req.params.type, category, res, find);
 });
 
-app.get('/hackathon/:hlid', function(req, res) {
+app.get('/scrape/:hlid', function(req, res) {
+	scrape.scrape(req.params.hlid);
+});
+
+app.get('/hackathons/:hlid', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
@@ -247,7 +251,7 @@ app.get('/hackathon/:hlid', function(req, res) {
 	});
 });
 
-app.get('/hackathon/:hlid/:type/:category', function(req, res) {
+app.get('/hackathons/:hlid/:type/:category', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
@@ -269,7 +273,7 @@ app.get('/hackathon/:hlid/:type/:category', function(req, res) {
 	});
 });
 
-app.get('/hackathon/:hlid/:type/:category/:name', function(req, res) {
+app.get('/hackathons/:hlid/:type/:category/:name', function(req, res) {
 	/* Connect to the DB and auth */
 	MongoClient.connect(mongourl, function(err, db) {
 		if(err) { return console.dir(err); }

@@ -72,14 +72,17 @@ var insertHackathon = function(hlid, name, start, end, url) {
 			
 			collection.ensureIndex('hackathon', function() {
 				/* Note the _id has been created */
-				collection.insert({
+				collection.update({
+					hlid: hlid,
+				}, {
 					hlid: hlid,
 					name: name,
 					start: start,
 					end: end,
 					url: url
 				}, {
-					safe : true
+					upsert: true,
+					safe: true
 				}, function(err, result) {
 					if (err) {
 						console.warn(err.message);

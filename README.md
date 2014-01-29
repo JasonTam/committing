@@ -25,5 +25,5 @@ $ node ./server.js
 ```
 then visit `localhost:8080` in your browser.
 
-To scrape data from Hacker League, visit `localhost:8080/<hackathon-url>` where `<hackathon-url>` is the corresponding portion of the Hacker League url, such as `hackerleague.org/hackathons/<hackathon-url>`.
+To scrape data from Hacker League, visit `localhost:8080/hackathons/<hackathon-url>` where `<hackathon-url>` is the corresponding portion of the Hacker League url, such as `hackerleague.org/hackathons/<hackathon-url>`.
 The new hackathon should show up on the homepage.

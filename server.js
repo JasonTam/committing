@@ -12,11 +12,11 @@ var ghBaseUrl = 'http://www.github.com/';
 /* GITHUB */
 var access_token;
 
-if (process.env.NODE_ENV == 'production') {
-	access_token = process.env.GITHUB;
-} else {
+try {
 	var secrets = require('./secrets.js');
 	access_token = secrets.github_access_token;
+} catch {
+	access_token = process.env.GITHUB;
 }
 
 /* MONGO */

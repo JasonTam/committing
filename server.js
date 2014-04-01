@@ -206,10 +206,12 @@ app.get('/hackathons/:hlid', function(req, res) {
 	});
 });
 
-var timeline = function(db, hackathon,  res) {
+var timeline = function(db, hackathon, res, find) {
 	var collection = db.collection('commits');
 
-	collection.find({hlid: hackathon.hlid}).sort({time: 1}).toArray(function(err, commits) {
+	find = find === undefined ? {hlid: hackathon.hlid} : find;
+
+	collection.find(find).sort({time: 1}).toArray(function(err, commits) {
 		if (commits) {
 			for (var c in commits) {
 				commits[c].elapsed = moment(commits[c].time).diff(moment(hackathon.start), 'minutes');
@@ -220,6 +222,7 @@ var timeline = function(db, hackathon,  res) {
 				commits: commits,
 				type: 'commits',
 				category: 'timeline',
+				name: find.repo
 			});
 		} else {
 			res.send(404);
@@ -265,17 +268,26 @@ app.get('/hackathons/:hlid/:type/:category/:name', function(req, res) {
 		var collection = db.collection('hackathons');
 		collection.findOne({hlid: req.params.hlid}, function(err, hackathon) {
 			if (hackathon) {
-				res.render('hackathon', {
-					hackathon: hackathon,
-					type: req.params.type,
-					category: req.params.category,
-					name: req.params.name
-				});
+				if (req.params.category == 'timeline') {
+					var find = { hlid: req.params.hlid };
+					find['repo'] = req.params.name;
+
+					timeline(db, hackathon, res, find);
+				} else {
+					res.render('hackathon', {
+						hackathon: hackathon,
+						type: req.params.type,
+						category: req.params.category,
+						name: req.params.name
+					});
+
+					db.close();
+				}
 			} else {
 				res.send(404);
-			}
 
-			db.close();
+				db.close();
+			}
 		});
 	});
 });

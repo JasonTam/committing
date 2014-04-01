@@ -31,6 +31,11 @@ html(lang='en')
 								a(href='/hackathons/#{hackathon.hlid}/#{type}/repos') repos
 							-if (category != 'users')
 								a(href='/hackathons/#{hackathon.hlid}/#{type}/users') users
+					-if (typeof(name) !== 'undefined') {
+						span /
+						.vert
+							.current #{name}
+					-}
 				h2
 					a(href='#{hackathon.url}') #{hackathon.name}
 			

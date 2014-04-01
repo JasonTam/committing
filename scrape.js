@@ -1,57 +1,7 @@
 var request = require('request');
 var cheerio = require('cheerio');
+var settings = require('./settings.js');
 var MongoClient = require('mongodb').MongoClient;
-
-/* SETTINGS */
-var useragent = 'committing';
-var hlBaseUrl = 'http://www.hackerleague.org';
-var participationUrl = '/participations';
-var ghBaseUrl = 'http://www.github.com/'; // needs the slash
-
-/* GITHUB */
-var access_token;
-
-if (process.env.NODE_ENV == 'production') {
-	access_token = process.env.GITHUB;
-} else {
-	var secrets = require('./secrets.js');
-	access_token = secrets.github_access_token;
-}
-
-/* MONGODB */
-var mongo;
-var mongourl;
-
-var generate_mongo_url = function(obj) {
-	obj.hostname = (obj.hostname || 'localhost');
-	obj.port = (obj.port || 27017);
-	obj.db = (obj.db || 'powerdata');
-	
-
-	// If on NodeJitsu Server
-	if (process.env.NODE_ENV == 'production' && process.env.MONGO) {
-		return process.env.MONGO;
-	}
-	
-	if (obj.username && obj.password) {
-		return 'mongodb://' + obj.username + ':' + obj.password + '@'
-		+ obj.hostname + ':' + obj.port + '/' + obj.db;
-	} else {
-		return 'mongodb://' + obj.hostname + ':' + obj.port + '/' + obj.db;
-	}
-};
-
-// local database for development
-var mongo = {
-	'hostname' : 'localhost',
-	'port' : 27017,
-	'username' : '',
-	'password' : '',
-	'name' : '',
-	'db' : 'committing'
-};
-
-var mongourl = generate_mongo_url(mongo);
 
 var getGithubUser = function(url) {
 	var slash = url.lastIndexOf('/');
@@ -65,7 +15,7 @@ var getGithubUser = function(url) {
 
 var insertHackathon = function(hlid, name, start, end, url) {
 	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
+	MongoClient.connect(settings.mongourl, function(err, db) {
 		if(err) { return console.warn(err); }
 		
 		db.collection('hackathons', function(err, collection) {
@@ -97,7 +47,7 @@ var insertHackathon = function(hlid, name, start, end, url) {
 
 var insertCommit = function(data) {
 	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
+	MongoClient.connect(settings.mongourl, function(err, db) {
 		if(err) { return console.warn(err); }
 		
 		db.collection('commits', function(err, collection) {
@@ -122,10 +72,10 @@ var getCommitDetail = function(hlid, owner, repo, sha, end) {
 	request.get({
 		uri: 'https://api.github.com/repos/' + owner + '/' + repo + '/commits/' + sha,
 		headers: {
-			'User-Agent': useragent
+			'User-Agent': settings.useragent
 		},
 		json: true,
-		qs: {access_token: access_token}
+		qs: {access_token: settings.access_token}
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {
 			var time = new Date(body.commit.committer.date);
@@ -174,10 +124,10 @@ var getActivity = function(hlid, start, end, owner, repo) {
 	request.get({
 		uri: url,
 		headers: {
-			'User-Agent': useragent
+			'User-Agent': settings.useragent
 		},
 		json: true,
-		qs: {access_token: access_token,
+		qs: {access_token: settings.access_token,
 			since: start.toISOString(),
 			until: end.toISOString()
 		}
@@ -208,10 +158,10 @@ var getRepos = function(hlid, start, end, user) {
 	request.get({
 		uri: uri, 
 		headers: {
-			'User-Agent': useragent
+			'User-Agent': settings.useragent
 		},
 		json: true,
-		qs: {access_token: access_token}
+		qs: {access_token: settings.access_token}
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {
 			var repo_hack;
@@ -271,11 +221,11 @@ var scrapeUser = function(hlid, start, end, githubList, userPageUrl) {
 				// grab git username
 				var gitUrl = $(gitLink).attr('href');
 				var gitUrlPhrases = gitUrl.split('/');
-				gitUrl = ghBaseUrl + gitUrlPhrases[gitUrlPhrases.length - 1]
+				gitUrl = settings.ghBaseUrl + gitUrlPhrases[gitUrlPhrases.length - 1]
 
 				var ghUser = getGithubUser(gitUrl);
 
-				if (gitUrl != ghBaseUrl && githubList.indexOf(ghUser) < 0) {
+				if (gitUrl != settings.ghBaseUrl && githubList.indexOf(ghUser) < 0) {
 					githubList.push(ghUser);
 					// crawlRepos(gitUrl)
 					getRepos(hlid, start, end, ghUser);
@@ -299,7 +249,7 @@ var searchProject = function(hlid, start, end, title) {
 		uri: url,
 		json: true,
 		headers: {
-			'User-Agent': useragent
+			'User-Agent': settings.useragent
 		},
 		qs: {access_token: access_token,
 			q: title,
@@ -330,7 +280,7 @@ var searchProject = function(hlid, start, end, title) {
 }
 
 var scrape = function(hackathon) {
-	var partUrl = hlBaseUrl + '/hackathons/' + hackathon + participationUrl;
+	var partUrl = settings.hlBaseUrl + '/hackathons/' + hackathon + participationUrl;
 
 	request(partUrl, function(err, resp, body) {
 		var $ = cheerio.load(body);
@@ -368,7 +318,7 @@ var scrape = function(hackathon) {
 		var userLinks = $('div#participants .user > .details > a.username');
 
 		$(userLinks).each(function(i, userLink) {
-			var userPageUrl = hlBaseUrl + $(userLink).attr('href');
+			var userPageUrl = settings.hlBaseUrl + $(userLink).attr('href');
 
 			if (userList.indexOf(userPageUrl) < 0) {
 				userList.push(userPageUrl);
@@ -377,7 +327,7 @@ var scrape = function(hackathon) {
 		});
 	});
 
-	var projUrl = hlBaseUrl + '/hackathons/' + hackathon + '/hacks';
+	var projUrl = settings.hlBaseUrl + '/hackathons/' + hackathon + '/hacks';
 
 	request(projUrl, function(err, resp, body) {
 		var $ = cheerio.load(body);

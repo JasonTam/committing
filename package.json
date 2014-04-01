@@ -1,24 +1,37 @@
 {
   "name": "committing",
+  "version": "0.0.0-66",
   "description": "tracks commits made during hackathons",
+  "main": "server.js",
   "dependencies": {
-    "request": "*",
-    "cheerio": "*",
-    "express": "*",
-    "mongodb": "*",
-    "jade": "*",
-    "moment": "*"
+    "express": "^4.0.0-rc4",
+    "jade": "^1.3.0",
+    "mongodb": "^1.4.0-rc9",
+    "cheerio": "^0.13.1",
+    "moment": "*",
+    "request": "^2.34.0"
   },
+  "devDependencies": {},
   "scripts": {
-    "start": "./server.js"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/JasonTam/committing"
+    "url": "https://github.com/JasonTam/committing.git"
   },
   "engines": {
     "node": ">=0.10"
   },
   "subdomain": "committing",
-  "version": "0.0.0-64"
+  "keywords": [
+    "github",
+    "hackathon"
+  ],
+  "author": "Eric Leong, Jason Tam",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JasonTam/committing/issues"
+  },
+  "homepage": "https://github.com/JasonTam/committing"
 }

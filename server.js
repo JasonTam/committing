@@ -2,55 +2,9 @@ var express = require('express');
 var MongoClient = require('mongodb').MongoClient;
 var request = require('request');
 var moment = require('moment');
-var scrape = require('./userScrape.js');
+var scrape = require('./scrape.js');
+var settings = require('./settings.js');
 var app = express();
-
-var hlBaseUrl = 'http://www.hackerleague.org';
-var hackathonUrl = '/hackathons';
-var ghBaseUrl = 'http://www.github.com/';
-
-/* GITHUB */
-var access_token;
-
-try {
-	var secrets = require('./secrets.js');
-	access_token = secrets.github_access_token;
-} catch {
-	access_token = process.env.GITHUB;
-}
-
-/* MONGO */
-var mongo;
-var mongourl;
-
-var generate_mongo_url = function(obj) {
-	obj.hostname = (obj.hostname || 'localhost');
-	obj.port = (obj.port || 27017);
-	obj.db = (obj.db || 'committing');
-
-	// If on NodeJitsu Server
-	if (process.env.NODE_ENV == 'production' && process.env.MONGO) {
-		return process.env.MONGO;
-	}
-	
-	if (obj.username && obj.password) {
-		return 'mongodb://' + obj.username + ':' + obj.password + '@'
-				+ obj.hostname + ':' + obj.port + '/' + obj.db;
-	} else {
-		return 'mongodb://' + obj.hostname + ':' + obj.port + '/' + obj.db;
-	}
-};
-
-var mongo = {
-	'hostname' : 'localhost',
-	'port' : 27017,
-	'username' : '',
-	'password' : '',
-	'name' : '',
-	'db' : 'committing'
-};
-
-var mongourl = generate_mongo_url(mongo);
 
 /* website */
 app.use(express.static(__dirname + '/public'));
@@ -63,7 +17,7 @@ app.set('view engine', 'jade');
 
 app.get('/', function(req, res) {
 	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
+	MongoClient.connect(settings.mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
 		
 		var collection = db.collection('hackathons');
@@ -159,7 +113,7 @@ var massageCategory = function(category) {
 
 var plot = function(hlid, type, category, res, find) {
 	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
+	MongoClient.connect(settings.mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
 		
 		var collection = db.collection('commits');
@@ -197,7 +151,7 @@ var plot = function(hlid, type, category, res, find) {
 					commits.push({
 						name: commit[category],
 						data: [],
-						url: ghBaseUrl + getUrl(commit, category)
+						url: settings.ghBaseUrl + getUrl(commit, category)
 					});
 				}
 
@@ -230,7 +184,7 @@ app.get('/scrape/:hlid', function(req, res) {
 
 app.get('/hackathons/:hlid', function(req, res) {
 	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
+	MongoClient.connect(settings.mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
 		
 		var collection = db.collection('hackathons');
@@ -277,7 +231,7 @@ var timeline = function(db, hackathon,  res) {
 
 app.get('/hackathons/:hlid/:type/:category', function(req, res) {
 	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
+	MongoClient.connect(settings.mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
 		
 		var collection = db.collection('hackathons');
@@ -305,7 +259,7 @@ app.get('/hackathons/:hlid/:type/:category', function(req, res) {
 
 app.get('/hackathons/:hlid/:type/:category/:name', function(req, res) {
 	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
+	MongoClient.connect(settings.mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
 		
 		var collection = db.collection('hackathons');
@@ -330,7 +284,7 @@ app.get('/hackathons/:hlid/:type/:category/:name', function(req, res) {
 
 var checkCommit = function(hlid, owner, repo, commit, end) {
 	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
+	MongoClient.connect(settings.mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
 
 		var collection = db.collection('commits');
@@ -353,7 +307,7 @@ var getActivity = function(hlid, owner, repo, start, end) {
 		json: true,
 		since: start.toISOString(),
 		until: end.toISOString(),
-		qs: {access_token: access_token}
+		qs: {access_token: settings.access_token}
 	}, function(err, resp, body) {
 		if (!err && resp.statusCode == 200) {
 			for (var c in body) {
@@ -375,7 +329,7 @@ var getActivity = function(hlid, owner, repo, start, end) {
 
 var update = function() {
 	/* Connect to the DB and auth */
-	MongoClient.connect(mongourl, function(err, db) {
+	MongoClient.connect(settings.mongourl, function(err, db) {
 		if(err) { return console.dir(err); }
 
 		var now = new Date();

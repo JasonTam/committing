@@ -251,7 +251,7 @@ var searchProject = function(hlid, start, end, title) {
 		headers: {
 			'User-Agent': settings.useragent
 		},
-		qs: {access_token: access_token,
+		qs: {access_token: settings.access_token,
 			q: title,
 			sort: 'updated',
 			order: 'desc'}
@@ -280,7 +280,7 @@ var searchProject = function(hlid, start, end, title) {
 }
 
 var scrape = function(hackathon) {
-	var partUrl = settings.hlBaseUrl + '/hackathons/' + hackathon + participationUrl;
+	var partUrl = settings.hlBaseUrl + '/hackathons/' + hackathon + settings.participationUrl;
 
 	request(partUrl, function(err, resp, body) {
 		var $ = cheerio.load(body);

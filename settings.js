@@ -42,4 +42,5 @@ module.exports.mongourl = generate_mongo_url(mongo);
 
 module.exports.useragent = 'committing';
 module.exports.hlBaseUrl = 'http://www.hackerleague.org';
+module.exports.participationUrl = '/participations';
 module.exports.ghBaseUrl = 'http://www.github.com/';

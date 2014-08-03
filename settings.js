@@ -16,11 +16,14 @@ var generate_mongo_url = function(obj) {
 	obj.port = (obj.port || 27017);
 	obj.db = (obj.db || 'committing');
 
-	// If on NodeJitsu Server
-	if (process.env.NODE_ENV == 'production' && process.env.MONGO) {
-		return process.env.MONGO;
+	// production
+	if (process.env.NODE_ENV == 'production') {
+		if (process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || process.env.MONGO) {
+			return process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || process.env.MONGO;
+		}
 	}
 	
+	// local
 	if (obj.username && obj.password) {
 		return 'mongodb://' + obj.username + ':' + obj.password + '@'
 				+ obj.hostname + ':' + obj.port + '/' + obj.db;

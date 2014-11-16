@@ -27,7 +27,7 @@ app.get('/', function(req, res) {
 					hackathons: hackathons
 				});
 			} else {
-				res.send(500);
+				res.status(500).end();
 			}
 
 			db.close();
@@ -180,6 +180,7 @@ app.get('/api/:hlid/:type/:category/:name', function(req, res) {
 
 app.get('/scrape/:hlid', function(req, res) {
 	scrape.scrape(req.params.hlid);
+	res.status(404).end();
 });
 
 app.get('/hackathons/:hlid', function(req, res) {
@@ -189,6 +190,8 @@ app.get('/hackathons/:hlid', function(req, res) {
 		
 		var collection = db.collection('hackathons');
 		collection.findOne({hlid: req.params.hlid}, function(err, hackathon) {
+			if(err) { return console.dir(err); }
+			
 			if (hackathon) {
 				res.render('hackathon', {
 					hackathon: hackathon,
@@ -196,9 +199,7 @@ app.get('/hackathons/:hlid', function(req, res) {
 					category: 'repos',
 				});
 			} else {
-				res.send(404);
-
-				scrape.scrape(req.params.hlid);
+				res.status(404).end();
 			}
 
 			db.close();
@@ -212,6 +213,8 @@ var timeline = function(db, hackathon, res, find) {
 	find = find === undefined ? {hlid: hackathon.hlid} : find;
 
 	collection.find(find).sort({time: 1}).toArray(function(err, commits) {
+		if(err) { return console.dir(err); }
+
 		if (commits) {
 			for (var c in commits) {
 				commits[c].elapsed = moment(commits[c].time).diff(moment(hackathon.start), 'minutes');
@@ -225,7 +228,7 @@ var timeline = function(db, hackathon, res, find) {
 				name: find.repo
 			});
 		} else {
-			res.send(404);
+			res.status(404).end();
 		}
 
 		db.close();
@@ -252,7 +255,7 @@ app.get('/hackathons/:hlid/:type/:category', function(req, res) {
 					db.close();
 				}
 			} else {
-				res.send(404);
+				res.status(404).end();
 
 				db.close();
 			}
@@ -284,7 +287,7 @@ app.get('/hackathons/:hlid/:type/:category/:name', function(req, res) {
 					db.close();
 				}
 			} else {
-				res.send(404);
+				res.status(404).end();
 
 				db.close();
 			}

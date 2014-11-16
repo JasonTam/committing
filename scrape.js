@@ -277,7 +277,62 @@ var searchProject = function(hlid, start, end, title) {
 			console.log(body);
 		}
 	});
-}
+};
+
+var tryProject = function(hlid, start, end, repoPath) {
+	var url = 'https://api.github.com/repos/' + repoPath;
+
+	request({
+		uri: url,
+		json: true,
+		headers: {
+			'User-Agent': settings.useragent
+		},
+		qs: {
+			access_token: settings.access_token
+		}
+	}, function(err, resp, repo) {
+		if (!err && resp.statusCode == 200) {
+			if (repo) {
+				getActivity(hlid, start, end, repo.owner.login, repo.name);
+			} else {
+				console.warn('No repo found for ' + repoPath);
+			}
+		} else if (err) {
+			console.error(err.message);
+		} else {
+			console.error('Error searching ' + url + ' : ' + resp.statusCode);
+			console.log(resp.headers);
+			console.log(repo);
+		}
+	});
+};
+
+var tryWebsite = function(hlid, start, end, projPath) {
+	var projUrl = settings.hlBaseUrl + projPath;
+
+	request(projUrl, function(err, resp, body) {
+		var $ = cheerio.load(body);
+
+		// website links
+		var webLink = $('.hack_details > .row > div > div.text-center > a');
+
+		if (webLink.length <= 0) {
+			console.error('No github link for ' + projUrl);
+			return;
+		}
+
+		$(webLink).each(function(i, link) {
+			var website = $(link).attr('href');
+
+			if (website.lastIndexOf('github.com') >= 0) { // it is a github link
+				var repoPath = website.substring(website.lastIndexOf('github.com/') + 11);
+
+				tryProject(hlid, start, end, repoPath);
+			}
+		});
+	});
+};
 
 var scrape = function(hackathon) {
 	var partUrl = settings.hlBaseUrl + '/hackathons/' + hackathon + settings.participationUrl;
@@ -288,41 +343,55 @@ var scrape = function(hackathon) {
 		var githubList = [];
 
 		// get url
-		var userurl = $('meta[property="og:url"]').attr('content');
-
-		// get hackathon dates
-		var dates = $('#hackathon_header span.hackathon_utc.hackathon_date');
-
-		var start = new Date(parseInt(dates.attr('data-start'), 10) * 1000);
-		var end = new Date(parseInt(dates.attr('data-end'), 10) * 1000);
+		var hackathonUrl = $('meta[property="og:url"]').attr('content');
 
 		// get name
-		var name = $('#hackathon_header h1.inline').text().trim();
+		var pageTitle = $('h2.page-title').text().trim();
+		
+		if (pageTitle) {
+			var name = pageTitle.substring(0, pageTitle.indexOf('\n'));
 
-		if (!name) {
-			console.error('Could not retrieve name for ' + userurl + ' from ' + partUrl);
+			if (name === undefined || name.length == 0) {
+				console.error('Could not retrieve name for ' + hackathonUrl + ' from ' + partUrl);
+				return;
+			}
+		} else {
+			console.error('Could not retrieve name for ' + hackathonUrl + ' from ' + partUrl);
 			return;
 		}
 
-		// get id
-		var hlid = $('#main > div:first-child').attr('id');
+		// get date
+		var start, end;
+		var date = $('h2.page-title > div.small').text().trim();
 
-		if (!hlid) {
-			console.error('Could not retrieve hlid for ' + userurl + ' from ' + partUrl);
-			return;
+		if (date) {
+			var month = date.substring(0, date.indexOf(' '));
+			
+			var startDay = date.substring(date.indexOf(' ') + 1, date.indexOf('-') - 2);
+			var endDay = date.substring(date.indexOf('-') + 1, date.indexOf(',') - 2);
+
+			var year = date.substring(date.indexOf(', ') + 1, date.indexOf('in')).trim();
+
+			start = new Date(month + ' ' + startDay + ', ' + year);
+			end = new Date(month + ' ' + endDay + ', ' + year);
 		}
 
-		insertHackathon(hlid, name, start, end, userurl);
+		insertHackathon(hackathon, name, start, end, hackathonUrl);
 
 		// User Page Links
-		var userLinks = $('div#participants .user > .details > a.username');
+		var userLinks = $('div#all-participants > div.participation > strong > a.username');
+
+		if (userLinks.length <= 0) {
+			console.error('No participants in ' + partUrl);
+			return;
+		}
 
 		$(userLinks).each(function(i, userLink) {
 			var userPageUrl = settings.hlBaseUrl + $(userLink).attr('href');
 
 			if (userList.indexOf(userPageUrl) < 0) {
 				userList.push(userPageUrl);
-				scrapeUser(hlid, start, end, githubList, userPageUrl)
+				scrapeUser(hackathon, start, end, githubList, userPageUrl)
 			}
 		});
 	});
@@ -335,43 +404,53 @@ var scrape = function(hackathon) {
 		var githubList = [];
 
 		// get url
-		var userurl = $('meta[property="og:url"]').attr('content');
+		var hackathonUrl = $('meta[property="og:url"]').attr('content');
 
 		// get hackathon dates
-		var dates = $('#hackathon_header span.hackathon_utc.hackathon_date');
+		var start, end;
+		var date = $('h2.page-title > div.small').text().trim();
 
-		var start = new Date(parseInt(dates.attr('data-start'), 10) * 1000);
-		var end = new Date(parseInt(dates.attr('data-end'), 10) * 1000);
+		if (date) {
+			var month = date.substring(0, date.indexOf(' '));
+			
+			var startDay = date.substring(date.indexOf(' ') + 1, date.indexOf('-') - 2);
+			var endDay = date.substring(date.indexOf('-') + 1, date.indexOf(',') - 2);
 
-		// get name
-		var name = $('#hackathon_header h1.inline').text().trim();
+			var year = date.substring(date.indexOf(', ') + 1, date.indexOf('in')).trim();
 
-		if (!name) {
-			console.error('Could not retrieve name for ' + userurl + ' from ' + partUrl);
+			start = new Date(month + ' ' + startDay + ', ' + year);
+			end = new Date(month + ' ' + endDay + ', ' + year);
+		}
+
+		// project links
+		var projLinks = $('.infinite h2 > a');
+
+		if (projLinks.length <= 0) {
+			console.error('No projects in ' + projUrl);
 			return;
 		}
 
-		// get id
-		var hlid = $('#main > div:first-child').attr('id');
-
-		if (!hlid) {
-			console.error('Could not retrieve hlid for ' + userurl + ' from ' + partUrl);
-			return;
-		}
-
-		// User Page Links
-		var projLinks = $('div#pitch_teams > div.hack h2.inline a.invert');
-
-		var num = 0;
+		var numSearches = 0;
+		var numWebsites = 0;
 		$(projLinks).each(function(i, projLink) {
 			var projTitle = $(projLink).text();
 
 			if (projTitle.indexOf(' ') < 0) {
 				setTimeout(function() {
-					searchProject(hlid, start, end, projTitle);
-				}, num * 5000);
+					searchProject(hackathon, start, end, projTitle);
+				}, numSearches * 5000);
 
-				num += 1;
+				numSearches += 1;
+			}
+
+			var projUrl = $(projLink).attr('href');
+
+			if (projUrl) {
+				setTimeout(function() {
+					tryWebsite(hackathon, start, end, projUrl);
+				}, numWebsites * 1000);
+
+				numWebsites += 1;
 			}
 		});
 	});
